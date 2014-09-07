@@ -20,7 +20,9 @@ require_once('class.binarynode.php');
 require_once('parsingFunctions2.php');
 echo "Hell yeah!<br />";
 
-get_tree("4 + 2");
+$tree = get_tree("34/555");
+
+$tree->traverse();
 
 ?>
 
