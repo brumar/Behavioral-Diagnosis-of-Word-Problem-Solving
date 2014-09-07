@@ -32,7 +32,7 @@ function	f($reponse, $nbs_ennonce)
 		if ($calcul_error === TRUE)
 			echo "Contient une erreur de calcul.<br />";
 		// Resolution type
-		$type_de_resolution = f2_3($nbs_ennonce, $nbs_reponse[0]);
+		$type_de_resolution = f2_3($nbs_ennonce, $nbs_reponse[0], $type_d_operation);
 		echo "Type de resolution : ";
 		print_tdr($type_de_resolution);
 		echo "<br />";
@@ -87,10 +87,21 @@ function	f2_2($nbs_reponse, $type_d_operation)
 // $nbs_ennonce a la forme " x, y, z,"
 // pour faciliter la reconnaissance des nombres
 // et ne pas confondre 4 et 45 par exemple.
-function	f2_3(&$nbs_ennonce, $nbs_reponse)
+function	f2_3(&$nbs_ennonce, $nbs_reponse, $type_d_operation)
 {
 	$is_nb0 = strstr($nbs_ennonce, " ".$nbs_reponse[0].",");
 	$is_nb1 = strstr($nbs_ennonce, " ".$nbs_reponse[1].",");
+	// Test de la soustraction inverse
+	if ($type_d_operation === Type_d_Operation::soustraction
+		&& $nbs_reponse[0] < $nbs_reponse[1])
+	{
+		if ($is_nb0 === FALSE)
+			$nbs_ennonce .= " ".$nbs_reponse[0].",";
+		if ($is_nb1 === FALSE)
+			$nbs_ennonce .= " ".$nbs_reponse[1].",";
+		return Type_de_Resolution::soustraction_inverse;
+	}
+	// Reste
 	if ($is_nb0 !== FALSE)
 	{
 		if ($is_nb1 !== FALSE)

@@ -39,7 +39,7 @@ function	print_tdr($type_de_resolution)
 			echo "operation a trou";
 			break;
 		case Type_de_Resolution::soustraction_inverse :
-			echo "soustraction_inverse";
+			echo "soustraction inverse";
 			break;
 		case Type_de_Resolution::ininterpretable :
 			echo "ininterpretable";
