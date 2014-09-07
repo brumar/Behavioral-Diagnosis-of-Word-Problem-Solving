@@ -22,8 +22,8 @@ function	f($reponse, $nbs_ennonce)
 	{
 		echo "Formule : $formule_simple[0]<br />";
 		// Operation type
-		echo "Type d'operation : ";
 		$type_d_operation = f2_1($formule_simple[0]);
+		echo "Type d'operation : ";
 		print_tdo($type_d_operation);
 		echo "<br />";
 		// Calculation error
@@ -83,20 +83,42 @@ function	f2_2($nbs_reponse, $type_d_operation)
 
 // Outputs:
 // - resolution type as in enum Type_d_Resolution
-// Trick : $nbs_ennonce a la forme " x, y, z,"
+// Trick :
+// $nbs_ennonce a la forme " x, y, z,"
 // pour faciliter la reconnaissance des nombres
 // et ne pas confondre 4 et 45 par exemple.
 function	f2_3(&$nbs_ennonce, $nbs_reponse)
 {
-	if (strstr($nbs_ennonce, " ".$nbs_reponse[0].",") !== FALSE
-		&& strstr($nbs_ennonce, " ".$nbs_reponse[1].",") !== FALSE)
+	$is_nb0 = strstr($nbs_ennonce, " ".$nbs_reponse[0].",");
+	$is_nb1 = strstr($nbs_ennonce, " ".$nbs_reponse[1].",");
+	if ($is_nb0 !== FALSE)
 	{
-		$nbs_ennonce .= $nbs_reponse[2];
-		return Type_de_Resolution::operation_simple;
+		if ($is_nb1 !== FALSE)
+		{
+			// On ajoute le resultat aux nombres connus :
+			$nbs_ennonce .= " ".$nbs_reponse[2].",";
+			return Type_de_Resolution::operation_simple;
+		}
+		else
+		{
+			$nbs_ennonce .= " ".$nbs_reponse[1].",";
+			return Type_de_Resolution::operation_a_trou;
+		}
 	}
-	$nbs_ennonce .= " ".$nbs_reponse[0].",";
-	$nbs_ennonce .= " ".$nbs_reponse[1].",";
-	return Type_de_Resolution::operation_a_trou;
+	else
+	{
+		if ($is_nb1 !== FALSE)
+		{
+			$nbs_ennonce .= " ".$nbs_reponse[0].",";
+			return Type_de_Resolution::operation_a_trou;
+		}
+		else
+		{
+			$nbs_ennonce .= " ".$nbs_reponse[0].",";
+			$nbs_ennonce .= " ".$nbs_reponse[1].",";
+			return Type_de_Resolution::ininterpretable;
+		}
+	}
 }
 
 ?>

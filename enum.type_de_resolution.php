@@ -10,6 +10,8 @@ abstract class Type_de_Resolution
 	const	operation_mentale = 4;
 	const	operation_a_trou = 5;
 	const	operation_simple = 6;
+	const	soustraction_inverse = 7;
+	const	ininterpretable = 8;
 
 	private function	_construct(){}
 }
@@ -35,6 +37,12 @@ function	print_tdr($type_de_resolution)
 			break;
 		case Type_de_Resolution::operation_a_trou :
 			echo "operation a trou";
+			break;
+		case Type_de_Resolution::soustraction_inverse :
+			echo "soustraction_inverse";
+			break;
+		case Type_de_Resolution::ininterpretable :
+			echo "ininterpretable";
 			break;
 		default :
 			echo "(type de resolution non reconnu)";
