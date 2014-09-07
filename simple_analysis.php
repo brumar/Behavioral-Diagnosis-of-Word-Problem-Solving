@@ -9,8 +9,7 @@ require_once('enum.type_de_resolution.php');
 // NO NEGATIVE NUMBERS ALLOWED!
 function	f($reponse, $nbs_ennonce)
 {
-	echo "Nombres de l'ennonce :<br />";
-	print_r($nbs_ennonce);
+	echo "Nombres de l'ennonce :$nbs_ennonce<br />";
 	echo "<br />";
 	echo "Reponse fournie : \"$reponse\"<br />";
 	$formules_simples = f1($reponse);
@@ -29,9 +28,13 @@ function	f($reponse, $nbs_ennonce)
 		echo "<br />";
 		// Calculation error
 		preg_match_all("/\d+/", $formule_simple[0], $nbs_reponse);
-		$calcul_error = f2_2($nbs_reponse, $type_d_operation);
+		$calcul_error = f2_2($nbs_reponse[0], $type_d_operation);
 		if ($calcul_error === TRUE)
 			echo "Contient une erreur de calcul.<br />";
+		$type_de_resolution = f2_3($nbs_ennonce, $nbs_reponse[0]);
+		echo "Type de resolution : ";
+		print_tdr($type_de_resolution);
+		echo "<br />";
 		echo "<br />";
 	}
 }
@@ -63,28 +66,28 @@ function	f2_2($nbs_reponse, $type_d_operation)
 	switch($type_d_operation)
 	{
 		case 'addition' :
-			if ((int)$nbs_reponse[0][0] + (int)$nbs_reponse[0][1]
-				=== (int)$nbs_reponse[0][2])
+			if ((int)$nbs_reponse[0] + (int)$nbs_reponse[1]
+				=== (int)$nbs_reponse[2])
 				return (FALSE);
 			else
 				return (TRUE);
 		case 'soustraction' :
-			if ((int)$nbs_reponse[0][0] - (int)$nbs_reponse[0][1]
-				=== (int)$nbs_reponse[0][2])
+			if ((int)$nbs_reponse[0] - (int)$nbs_reponse[1]
+				=== (int)$nbs_reponse[2])
 				return (FALSE);
 			else
 				return (TRUE);
 	}
 }
 
-/*
 // Outputs:
 // - resolution type as in enum Type_d_Resolution
-function	f2_3($nbs_ennonce, )
+function	f2_3($nbs_ennonce, $nbs_reponse)
 {
+	if (strstr($nbs_ennonce, $nbs_reponse[0]) !== FALSE
+		&& strstr($nbs_ennonce, $nbs_reponse[1]) !== FALSE)
+		return Type_de_Resolution::operation_simple;
+	return Type_de_Resolution::operation_a_trou;
 }
-*/
-
-
 
 ?>

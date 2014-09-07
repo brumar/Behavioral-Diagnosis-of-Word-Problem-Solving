@@ -19,7 +19,7 @@ require_once('simple_analysis.php');
 
 //echo "Hell yeah!<br />";
 
-f("Wesh 43 + 2 = 46 gros ! Et 2 - 3 = 1", [43, 46]);
+f("Wesh 43 + 2 = 46 gros ! Et 2 - 3 = 1", "43, 46");
 
 
 
