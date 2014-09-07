@@ -82,11 +82,16 @@ function	f2_2($nbs_reponse, $type_d_operation)
 
 // Outputs:
 // - resolution type as in enum Type_d_Resolution
-function	f2_3($nbs_ennonce, $nbs_reponse)
+function	f2_3(&$nbs_ennonce, $nbs_reponse)
 {
-	if (strstr($nbs_ennonce, $nbs_reponse[0]) !== FALSE
-		&& strstr($nbs_ennonce, $nbs_reponse[1]) !== FALSE)
+	if (strstr($nbs_ennonce, " ".$nbs_reponse[0].",") !== FALSE
+		&& strstr($nbs_ennonce, " ".$nbs_reponse[1].",") !== FALSE)
+	{
+		$nbs_ennonce .= $nbs_reponse[2];
 		return Type_de_Resolution::operation_simple;
+	}
+	$nbs_ennonce .= " ".$nbs_reponse[0].",";
+	$nbs_ennonce .= " ".$nbs_reponse[1].",";
 	return Type_de_Resolution::operation_a_trou;
 }
 
