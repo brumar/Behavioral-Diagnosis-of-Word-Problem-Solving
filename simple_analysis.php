@@ -34,8 +34,8 @@ function	f($reponse, $nbs_ennonce)
 		echo "<br />";
 		// Calculation error
 		$calcul_error = f2_2($nbs_reponse[0], $type_d_operation, $type_de_resolution);
-		if ($calcul_error === TRUE)
-			echo "Contient une erreur de calcul.<br />";
+		if ($calcul_error != 0 )
+			echo "Contient une erreur de calcul de $calcul_error.<br />";
 		echo "<br />";
 	}
 }
@@ -67,26 +67,26 @@ function	f2_2($nbs_reponse, $type_d_operation, $type_de_resolution)
 	switch($type_d_operation)
 	{
 		case Type_d_Operation::addition :
-			if ((int)$nbs_reponse[0] + (int)$nbs_reponse[1]
+			if (($result = (int)$nbs_reponse[0] + (int)$nbs_reponse[1])
 				=== (int)$nbs_reponse[2])
-				return (FALSE);
+				return FALSE;
 			else
-				return (TRUE);
+				return abs((int)$nbs_reponse[2] - $result);
 			break;
 		case Type_d_Operation::soustraction :
 			if ($type_de_resolution === Type_de_Resolution::soustraction_inverse)
 			{
-				if ((int)$nbs_reponse[1] - (int)$nbs_reponse[0]
+				if (($result = (int)$nbs_reponse[1] - (int)$nbs_reponse[0])
 					=== (int)$nbs_reponse[2])
-					return (FALSE);
+					return FALSE;
 				else
-					return (TRUE);
+					return abs((int)$nbs_reponse[2] - $result);
 			}
-			if ((int)$nbs_reponse[0] - (int)$nbs_reponse[1]
+			if (($result = (int)$nbs_reponse[0] - (int)$nbs_reponse[1])
 				=== (int)$nbs_reponse[2])
-				return (FALSE);
+				return FALSE;
 			else
-				return (TRUE);
+				return abs((int)$nbs_reponse[2] - $result);
 	}
 }
 
