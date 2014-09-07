@@ -22,8 +22,8 @@ function	f($reponse, $nbs_ennonce)
 	{
 		echo "Formule : $formule_simple[0]<br />";
 		// Operation type
-		$type_d_operation = f2_1($formule_simple[0]);
 		echo "Type d'operation : ";
+		$type_d_operation = f2_1($formule_simple[0]);
 		print_tdo($type_d_operation);
 		echo "<br />";
 		// Calculation error
@@ -31,6 +31,7 @@ function	f($reponse, $nbs_ennonce)
 		$calcul_error = f2_2($nbs_reponse[0], $type_d_operation);
 		if ($calcul_error === TRUE)
 			echo "Contient une erreur de calcul.<br />";
+		// Resolution type
 		$type_de_resolution = f2_3($nbs_ennonce, $nbs_reponse[0]);
 		echo "Type de resolution : ";
 		print_tdr($type_de_resolution);
@@ -82,6 +83,9 @@ function	f2_2($nbs_reponse, $type_d_operation)
 
 // Outputs:
 // - resolution type as in enum Type_d_Resolution
+// Trick : $nbs_ennonce a la forme " x, y, z,"
+// pour faciliter la reconnaissance des nombres
+// et ne pas confondre 4 et 45 par exemple.
 function	f2_3(&$nbs_ennonce, $nbs_reponse)
 {
 	if (strstr($nbs_ennonce, " ".$nbs_reponse[0].",") !== FALSE
