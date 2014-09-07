@@ -1,28 +1,7 @@
 <?php
 
-// Enum: type d'operations
-abstract class Type_d_Operation
-{
-	const	addition = 0;
-	const	soustraction = 1;
-
-	private function	_construct(){}
-
-	static function	print_tdo($type_d_operation)
-	{
-		switch($type_d_operation)
-		{
-			case Type_d_Operation::addition :
-				echo "addition";
-				break;
-			case Type_d_Operation::soustraction :
-				echo "soustraction";
-				break;
-			default :
-				echo "(type d'operation non reconnu)";
-		}
-	}
-}
+require_once('enum.type_d_operation.php');
+require_once('enum.type_de_resolution.php');
 
 // Outputs in navigator an analysis of
 // a simple arithmetic problem answer.
@@ -46,7 +25,7 @@ function	f($reponse, $nbs_ennonce)
 		// Operation type
 		$type_d_operation = f2_1($formule_simple[0]);
 		echo "Type d'operation : ";
-		Type_d_Operation::print_tdo($type_d_operation);
+		print_tdo($type_d_operation);
 		echo "<br />";
 		// Calculation error
 		preg_match_all("/\d+/", $formule_simple[0], $nbs_reponse);
@@ -98,12 +77,13 @@ function	f2_2($nbs_reponse, $type_d_operation)
 	}
 }
 
+/*
 // Outputs:
 // - resolution type as in enum Type_d_Resolution
 function	f2_3($nbs_ennonce, )
 {
 }
-
+*/
 
 
 
