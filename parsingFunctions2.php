@@ -12,4 +12,5 @@ function	get_tree($str)
 	$tree->root->right = new BinaryNode($nbs[1]);
 	return $tree;
 }
+
 ?>
