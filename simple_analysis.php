@@ -2,10 +2,11 @@
 
 require_once('enum.type_d_operation.php');
 require_once('enum.type_de_resolution.php');
+require_once('simple_analysis_sql.php');
 
 // Outputs in navigator an analysis of
 // a simple arithmetic problem answer.
-// WORKS ONLY FOR ADDITIONS / SOUSTRACTIONS!
+// WORKS ONLY FOR ADDITIONS / substractionS!
 // NO NEGATIVE NUMBERS ALLOWED!
 function	f($reponse, $nbs_ennonce)
 {
@@ -14,6 +15,7 @@ function	f($reponse, $nbs_ennonce)
 	echo "Reponse fournie : \"$reponse\"<br />";
 	$formules_simples = f1($reponse);
 	echo "<br />";
+	$id_answer = insert_answer($reponse);
 	echo "Formule(s) simple(s) detectee(s) : <br />";
 	print_r($formules_simples);
 	echo "<br />";
@@ -37,6 +39,7 @@ function	f($reponse, $nbs_ennonce)
 		if ($calcul_error != 0 )
 			echo "Contient une erreur de calcul de $calcul_error.<br />";
 		echo "<br />";
+		insert_formula($id_answer, $formule_simple[0], $type_d_operation, $type_de_resolution, $calcul_error);
 	}
 }
 
@@ -56,7 +59,7 @@ function	f2_1($formule_simple)
 	if (strstr($formule_simple, "+") !== FALSE)
 		return Type_d_Operation::addition;
 	if (strstr($formule_simple, "-") !== FALSE)
-		return Type_d_Operation::soustraction;
+		return Type_d_Operation::substraction;
 	return -1;
 }
 
@@ -73,8 +76,8 @@ function	f2_2($nbs_reponse, $type_d_operation, $type_de_resolution)
 			else
 				return abs((int)$nbs_reponse[2] - $result);
 			break;
-		case Type_d_Operation::soustraction :
-			if ($type_de_resolution === Type_de_Resolution::soustraction_inverse)
+		case Type_d_Operation::substraction :
+			if ($type_de_resolution === Type_de_Resolution::substraction_inverse)
 			{
 				if (($result = (int)$nbs_reponse[1] - (int)$nbs_reponse[0])
 					=== (int)$nbs_reponse[2])
@@ -100,15 +103,15 @@ function	f2_3(&$nbs_ennonce, $nbs_reponse, $type_d_operation)
 {
 	$is_nb0 = strstr($nbs_ennonce, " ".$nbs_reponse[0].",");
 	$is_nb1 = strstr($nbs_ennonce, " ".$nbs_reponse[1].",");
-	// Test de la soustraction inverse
-	if ($type_d_operation === Type_d_Operation::soustraction
+	// Test de la substraction inverse
+	if ($type_d_operation === Type_d_Operation::substraction
 		&& $nbs_reponse[0] < $nbs_reponse[1])
 	{
 		if ($is_nb0 === FALSE)
 			$nbs_ennonce .= " ".$nbs_reponse[0].",";
 		if ($is_nb1 === FALSE)
 			$nbs_ennonce .= " ".$nbs_reponse[1].",";
-		return Type_de_Resolution::soustraction_inverse;
+		return Type_de_Resolution::substraction_inverse;
 	}
 	// Reste
 	if ($is_nb0 !== FALSE)
@@ -117,7 +120,7 @@ function	f2_3(&$nbs_ennonce, $nbs_reponse, $type_d_operation)
 		{
 			// On ajoute le resultat aux nombres connus :
 			$nbs_ennonce .= " ".$nbs_reponse[2].",";
-			return Type_de_Resolution::operation_simple;
+			return Type_de_Resolution::simple_operation;
 		}
 		else
 		{
@@ -136,7 +139,7 @@ function	f2_3(&$nbs_ennonce, $nbs_reponse, $type_d_operation)
 		{
 			$nbs_ennonce .= " ".$nbs_reponse[0].",";
 			$nbs_ennonce .= " ".$nbs_reponse[1].",";
-			return Type_de_Resolution::ininterpretable;
+			return Type_de_Resolution::uninterpretable;
 		}
 	}
 }
