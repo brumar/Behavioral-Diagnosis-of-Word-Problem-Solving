@@ -42,48 +42,6 @@ class	Answer
 			$reponse, $formules_simples, PREG_SET_ORDER);
 		return $formules_simples;
 	}
-
-	// Outputs;
-	// - type d'operation as in enum Type_d_Operation
-	function	find_op_typ($formule_simple)
-	{
-		if (strstr($formule_simple, "+") !== FALSE)
-			return Type_d_Operation::addition;
-		if (strstr($formule_simple, "-") !== FALSE)
-			return Type_d_Operation::substraction;
-		return -1;
-	}
-
-	// Outputs:
-	// - calcul_error = TRUE/FALSE
-	function	find_miscalc($nbs_reponse, $type_d_operation, $type_de_resolution)
-	{ 
-		switch($type_d_operation)
-		{
-			case Type_d_Operation::addition :
-				if (($result = (int)$nbs_reponse[0] + (int)$nbs_reponse[1])
-					=== (int)$nbs_reponse[2])
-					return FALSE;
-				else
-					return abs((int)$nbs_reponse[2] - $result);
-				break;
-			case Type_d_Operation::substraction :
-				if ($type_de_resolution === Type_de_Resolution::substraction_inverse)
-				{
-					if (($result = (int)$nbs_reponse[1] - (int)$nbs_reponse[0])
-						=== (int)$nbs_reponse[2])
-						return FALSE;
-					else
-						return abs((int)$nbs_reponse[2] - $result);
-				}
-				if (($result = (int)$nbs_reponse[0] - (int)$nbs_reponse[1])
-					=== (int)$nbs_reponse[2])
-					return FALSE;
-				else
-					return abs((int)$nbs_reponse[2] - $result);
-		}
-	}
-
 	// Outputs:
 	// - resolution type as in enum Type_d_Resolution
 	// Trick :
