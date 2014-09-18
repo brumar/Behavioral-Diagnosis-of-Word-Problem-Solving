@@ -11,12 +11,11 @@ class	SimplFormul
 	private	$resol_typ;
 	private	$miscalc;
 
-	public function		SimplFormul($str, $nbs_problem)
+	public function		SimplFormul($str, &$nbs_problem)
 	{
 		$this->str = $str;
 		preg_match_all("/\d+/", $str, $nbs);
 		$this->nbs = $nbs[0];
-		print_r($this->nbs);
 		$this->find_op_typ();
 		$this->find_resol_typ($nbs_problem);
 		$this->find_miscalc();
@@ -67,7 +66,7 @@ class	SimplFormul
 			$this->resol_typ = Type_de_Resolution::substraction_inverse;
 		}
 		// Reste
-		if ($is_nb0 !== FALSE)
+		else if ($is_nb0 !== FALSE)
 		{
 			echo "bouh2\n";
 			if ($is_nb1 !== FALSE)
@@ -119,7 +118,7 @@ class	SimplFormul
 					else
 						$this->miscalc = abs((int)$this->nbs[2] - $result);
 				}
-				if (($result = (int)$this->nbs[0] - (int)$this->nbs[1]) === (int)$this->nbs[2])
+				else if (($result = (int)$this->nbs[0] - (int)$this->nbs[1]) === (int)$this->nbs[2])
 					$this->miscalc = 0;
 				else
 					$this->miscalc = abs((int)$this->nbs[2] - $result);
