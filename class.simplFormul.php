@@ -15,6 +15,8 @@ class	SimplFormul
 	{
 		$this->str = $str;
 		preg_match_all("/\d+/", $str, $nbs);
+		$this->nbs = $nbs[0];
+		print_r($this->nbs);
 		$this->find_op_typ();
 		$this->find_resol_typ($nbs_problem);
 		$this->find_miscalc();
@@ -57,39 +59,42 @@ class	SimplFormul
 		// Test de la substraction inverse
 		if ($this->op_typ === Type_d_Operation::substraction && $this->nbs[0] < $this->nbs[1])
 		{
+			echo "bouh1\n";
 			if ($is_nb0 === FALSE)
 				$nbs_problem .= " ".$this->nbs[0].",";
 			if ($is_nb1 === FALSE)
 				$nbs_problem .= " ".$this->nbs[1].",";
-			return Type_de_Resolution::substraction_inverse;
+			$this->resol_typ = Type_de_Resolution::substraction_inverse;
 		}
 		// Reste
 		if ($is_nb0 !== FALSE)
 		{
+			echo "bouh2\n";
 			if ($is_nb1 !== FALSE)
 			{
 				// On ajoute le resultat aux nombres connus :
 				$nbs_problem .= " ".$this->nbs[2].",";
-				return Type_de_Resolution::simple_operation;
+				$this->resol_typ = Type_de_Resolution::simple_operation;
 			}
 			else
 			{
 				$nbs_problem .= " ".$this->nbs[1].",";
-				return Type_de_Resolution::operation_a_trou;
+				$this->resol_typ = Type_de_Resolution::operation_a_trou;
 			}
 		}
 		else
 		{
+			echo "bouh3\n";
 			if ($is_nb1 !== FALSE)
 			{
 				$nbs_problem .= " ".$this->nbs[0].",";
-				return Type_de_Resolution::operation_a_trou;
+				$this->resol_typ = Type_de_Resolution::operation_a_trou;
 			}
 			else
 			{
 				$nbs_problem .= " ".$this->nbs[0].",";
 				$nbs_problem .= " ".$this->nbs[1].",";
-				return Type_de_Resolution::uninterpretable;
+				$this->resol_typ = Type_de_Resolution::uninterpretable;
 			}
 		}
 	}
