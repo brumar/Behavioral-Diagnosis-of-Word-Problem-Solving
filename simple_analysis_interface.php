@@ -20,10 +20,10 @@ require_once('class.answer.php');
 
 //echo "Hell yeah!<br />";
 
-f("Wesh 43 + 2 = 46 gros ! Et 46 - 43 = 3 100 + 100 = 200 200 - 300 = 200", " 43, 46,");
+//f("Wesh 43 + 2 = 46 gros ! Et 46 - 43 = 3 100 + 100 = 200 200 - 300 = 200", " 43, 46,");
 
-$str = "bleh!";
-$coucou = new Answer($str);
+$str = "Wesh 43 + 2 = 46 gros ! Et 46 - 43 = 3 100 + 100 = 200 200 - 300 = 200";
+$coucou = new Answer($str, " 43, 46,");
 
 
 

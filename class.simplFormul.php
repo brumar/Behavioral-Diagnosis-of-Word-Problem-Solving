@@ -1,5 +1,8 @@
 <?php
 
+require_once('enums/enum.type_d_operation.php');
+require_once('enums/enum.type_de_resolution.php');
+
 class	SimplFormul
 {
 	private	$str;
@@ -8,60 +11,113 @@ class	SimplFormul
 	private	$resol_typ;
 	private	$miscalc;
 
-	public function		SimplFormul($str)
+	public function		SimplFormul($str, $nbs_problem)
 	{
 		$this->str = $str;
 		preg_match_all("/\d+/", $str, $nbs);
-		find_op_typ();
-		find_miscalc();
+		$this->find_op_typ();
+		$this->find_resol_typ($nbs_problem);
+		$this->find_miscalc();
 	}
 
-	public function		print()
+	public function		_print()
 	{
-		echo "Formule : $str\n";
-		echo "Type d'operation : $op_typ\n";
-		echo "Type de resolution : $resol_typ\n";
-		if ($miscalc > 0)
-			echo "Contient une erreur de calcul de $miscalc.\n";
+		echo "Formule : $this->str<br />";
+		echo "Type d'operation : ";
+		print_tdo($this->op_typ);
+		echo "<br />";
+		echo "Type de resolution : ";
+		print_tdr($this->resol_typ);
+		echo "<br />";
+		if ($this->miscalc > 0)
+			echo "Contient une erreur de calcul de $this->miscalc.<br />";
+		echo "<br />";
 	}
 
 	// Computes;
 	// - Operation type as in enum Type_d_Operation
 	private function	find_op_typ()
 	{
-		if (strstr($str, "+") !== FALSE)
-			$op_typ = Type_d_Operation::addition;
-		else if (strstr($str, "-") !== FALSE)
-			$op_typ = Type_d_Operation::substraction;
+		if (strstr($this->str, "+") !== FALSE)
+			$this->op_typ = Type_d_Operation::addition;
+		else if (strstr($this->str, "-") !== FALSE)
+			$this->op_typ = Type_d_Operation::substraction;
 	}
-	
+
+	// Outputs:
+	// - resolution type as in enum Type_d_Resolution
+	// Trick :
+	// $nbs_problem a la forme " x, y, z,"
+	// pour faciliter la reconnaissance des nombres
+	// et ne pas confondre 4 et 45 par exemple.
+	private function	find_resol_typ(&$nbs_problem)
+	{
+		$is_nb0 = strstr($nbs_problem, " ".$this->nbs[0].",");
+		$is_nb1 = strstr($nbs_problem, " ".$this->nbs[1].",");
+		// Test de la substraction inverse
+		if ($this->op_typ === Type_d_Operation::substraction && $this->nbs[0] < $this->nbs[1])
+		{
+			if ($is_nb0 === FALSE)
+				$nbs_problem .= " ".$this->nbs[0].",";
+			if ($is_nb1 === FALSE)
+				$nbs_problem .= " ".$this->nbs[1].",";
+			return Type_de_Resolution::substraction_inverse;
+		}
+		// Reste
+		if ($is_nb0 !== FALSE)
+		{
+			if ($is_nb1 !== FALSE)
+			{
+				// On ajoute le resultat aux nombres connus :
+				$nbs_problem .= " ".$this->nbs[2].",";
+				return Type_de_Resolution::simple_operation;
+			}
+			else
+			{
+				$nbs_problem .= " ".$this->nbs[1].",";
+				return Type_de_Resolution::operation_a_trou;
+			}
+		}
+		else
+		{
+			if ($is_nb1 !== FALSE)
+			{
+				$nbs_problem .= " ".$this->nbs[0].",";
+				return Type_de_Resolution::operation_a_trou;
+			}
+			else
+			{
+				$nbs_problem .= " ".$this->nbs[0].",";
+				$nbs_problem .= " ".$this->nbs[1].",";
+				return Type_de_Resolution::uninterpretable;
+			}
+		}
+	}
+
 	// Outputs:
 	// - calcul_error (int)
-	function	find_miscalc()
+	private function	find_miscalc()
 	{ 
-		switch($op_typ)
+		switch($this->op_typ)
 		{
 			case Type_d_Operation::addition :
-				if (($result = (int)$nbs_reponse[0] + (int)$nbs_reponse[1])
-					=== (int)$nbs_reponse[2])
-					return FALSE;
+				if (($result = (int)$this->nbs[0] + (int)$this->nbs[1]) === (int)$this->nbs[2])
+					$this->miscalc = 0;
 				else
-					return abs((int)$nbs_reponse[2] - $result);
+					$this->miscalc = abs((int)$this->nbs[2] - $result);
 				break;
 			case Type_d_Operation::substraction :
-				if ($type_de_resolution === Type_de_Resolution::substraction_inverse)
+				if ($this->resol_typ === Type_de_Resolution::substraction_inverse)
 				{
-					if (($result = (int)$nbs_reponse[1] - (int)$nbs_reponse[0])
-						=== (int)$nbs_reponse[2])
-						return FALSE;
+					if (($result = (int)$this->nbs[1] - (int)$this->nbs[0]) === (int)$this->nbs[2])
+						$this->miscalc = 0;
 					else
-						return abs((int)$nbs_reponse[2] - $result);
+						$this->miscalc = abs((int)$this->nbs[2] - $result);
 				}
-				if (($result = (int)$nbs_reponse[0] - (int)$nbs_reponse[1])
-					=== (int)$nbs_reponse[2])
-					return FALSE;
+				if (($result = (int)$this->nbs[0] - (int)$this->nbs[1]) === (int)$this->nbs[2])
+					$this->miscalc = 0;
 				else
-					return abs((int)$nbs_reponse[2] - $result);
+					$this->miscalc = abs((int)$this->nbs[2] - $result);
 		}
 	}
 
