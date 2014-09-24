@@ -58,7 +58,6 @@ class	SimplFormul
 		// Test de la substraction inverse
 		if ($this->op_typ === Type_d_Operation::substraction && $this->nbs[0] < $this->nbs[1])
 		{
-			echo "bouh1\n";
 			if ($is_nb0 === FALSE)
 				$nbs_problem .= " ".$this->nbs[0].",";
 			if ($is_nb1 === FALSE)
@@ -68,7 +67,6 @@ class	SimplFormul
 		// Reste
 		else if ($is_nb0 !== FALSE)
 		{
-			echo "bouh2\n";
 			if ($is_nb1 !== FALSE)
 			{
 				// On ajoute le resultat aux nombres connus :
@@ -83,7 +81,6 @@ class	SimplFormul
 		}
 		else
 		{
-			echo "bouh3\n";
 			if ($is_nb1 !== FALSE)
 			{
 				$nbs_problem .= " ".$this->nbs[0].",";
