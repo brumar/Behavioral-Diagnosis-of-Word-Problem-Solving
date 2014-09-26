@@ -11,6 +11,9 @@ class	SimplFormul
 	private	$resol_typ;
 	private	$miscalc;
 
+	public $result;
+	public $formul;
+
 	public function		SimplFormul($str, &$nbs_problem)
 	{
 		$this->str = $str;
@@ -35,6 +38,13 @@ class	SimplFormul
 		echo "<br />";
 	}
 
+	// Computes:
+	// formula of type "N1 - N2", with help of other formulas' expressions.
+	public function		find_formul($arr_formul)
+	{
+		
+	}
+
 	// Computes;
 	// - Operation type as in enum Type_d_Operation
 	private function	find_op_typ()
@@ -53,16 +63,21 @@ class	SimplFormul
 	// et ne pas confondre 4 et 45 par exemple.
 	private function	find_resol_typ(&$nbs_problem)
 	{
-		$is_nb0 = strstr($nbs_problem, " ".$this->nbs[0].",");
-		$is_nb1 = strstr($nbs_problem, " ".$this->nbs[1].",");
+		//$is_nb0 = strstr($nbs_problem, " ".$this->nbs[0].",");
+		//$is_nb1 = strstr($nbs_problem, " ".$this->nbs[1].",");
+		$is_nb0 = array_key_exists($this->nbs[0], $nbs_problem);
+		$is_nb1 = array_key_exists($this->nbs[1], $nbs_problem);
 		// Test de la substraction inverse
 		if ($this->op_typ === Type_d_Operation::substraction && $this->nbs[0] < $this->nbs[1])
 		{
+			/*
 			if ($is_nb0 === FALSE)
 				$nbs_problem .= " ".$this->nbs[0].",";
 			if ($is_nb1 === FALSE)
 				$nbs_problem .= " ".$this->nbs[1].",";
+			 */
 			$this->resol_typ = Type_de_Resolution::substraction_inverse;
+			$this->result = $this->nbs[2];
 		}
 		// Reste
 		else if ($is_nb0 !== FALSE)
@@ -70,27 +85,31 @@ class	SimplFormul
 			if ($is_nb1 !== FALSE)
 			{
 				// On ajoute le resultat aux nombres connus :
-				$nbs_problem .= " ".$this->nbs[2].",";
+				//$nbs_problem .= " ".$this->nbs[2].",";
 				$this->resol_typ = Type_de_Resolution::simple_operation;
+				$this->result = $this->nbs[2];
 			}
 			else
 			{
-				$nbs_problem .= " ".$this->nbs[1].",";
+				//$nbs_problem .= " ".$this->nbs[1].",";
 				$this->resol_typ = Type_de_Resolution::operation_a_trou;
+				$this->result = $this->nbs[1];
 			}
 		}
 		else
 		{
 			if ($is_nb1 !== FALSE)
 			{
-				$nbs_problem .= " ".$this->nbs[0].",";
+				//$nbs_problem .= " ".$this->nbs[0].",";
 				$this->resol_typ = Type_de_Resolution::operation_a_trou;
+				$this->result = $this->nbs[0];
 			}
 			else
 			{
-				$nbs_problem .= " ".$this->nbs[0].",";
-				$nbs_problem .= " ".$this->nbs[1].",";
+				//$nbs_problem .= " ".$this->nbs[0].",";
+				//$nbs_problem .= " ".$this->nbs[1].",";
 				$this->resol_typ = Type_de_Resolution::uninterpretable;
+				$this->result = $this->nbs[2];
 			}
 		}
 	}
