@@ -14,7 +14,7 @@ class	SimplFormul
 	public $result;
 	public $formul;
 
-	public function		SimplFormul($str, &$nbs_problem)
+	public function		SimplFormul($str, $nbs_problem)
 	{
 		$this->str = $str;
 		preg_match_all("/\d+/", $str, $nbs);
@@ -35,24 +35,44 @@ class	SimplFormul
 		echo "<br />";
 		if ($this->miscalc > 0)
 			echo "Contient une erreur de calcul de $this->miscalc.<br />";
+		echo "Expression : $this->formul<br />";
 		echo "<br />";
 	}
 
+/*
 	// Computes:
 	// formula of type "N1 - N2", with help of other formulas' expressions.
-	public function		find_formul($arr_formul)
+	public function		find_formul($nbs_problem, $arr_formul)
 	{
-		
+		$this->formul = "";
+		$this->formul .= $nbs_problem[$this->nbs[0]];
+		switch ($this->op_typ)
+		{
+		case Type_d_Operation::addition :
+			$this->formul .= " + ";
+			break;
+		case Type_d_Operation::substraction :
+			$this->formul .= " - ";
+			break;
+		}
+		$this->formul .= $nbs_problem[$this->nbs[1]];
 	}
+*/
 
 	// Computes;
 	// - Operation type as in enum Type_d_Operation
 	private function	find_op_typ()
 	{
 		if (strstr($this->str, "+") !== FALSE)
+		{
 			$this->op_typ = Type_d_Operation::addition;
+			$this->formul = " + ";
+		}
 		else if (strstr($this->str, "-") !== FALSE)
+		{
 			$this->op_typ = Type_d_Operation::substraction;
+			$this->formul = " - ";
+		}
 	}
 
 	// Outputs:
@@ -61,7 +81,7 @@ class	SimplFormul
 	// $nbs_problem a la forme " x, y, z,"
 	// pour faciliter la reconnaissance des nombres
 	// et ne pas confondre 4 et 45 par exemple.
-	private function	find_resol_typ(&$nbs_problem)
+	private function	find_resol_typ($nbs_problem)
 	{
 		//$is_nb0 = strstr($nbs_problem, " ".$this->nbs[0].",");
 		//$is_nb1 = strstr($nbs_problem, " ".$this->nbs[1].",");
@@ -78,6 +98,8 @@ class	SimplFormul
 			 */
 			$this->resol_typ = Type_de_Resolution::substraction_inverse;
 			$this->result = $this->nbs[2];
+			$this->formul = $nbs_problem[$this->nbs[1]] . $this->formul;
+			$this->formul .= $nbs_problem[$this->nbs[0]];
 		}
 		// Reste
 		else if ($is_nb0 !== FALSE)
@@ -88,12 +110,16 @@ class	SimplFormul
 				//$nbs_problem .= " ".$this->nbs[2].",";
 				$this->resol_typ = Type_de_Resolution::simple_operation;
 				$this->result = $this->nbs[2];
+				$this->formul = $nbs_problem[$this->nbs[0]] . $this->formul;
+				$this->formul .= $nbs_problem[$this->nbs[1]];
 			}
 			else
 			{
 				//$nbs_problem .= " ".$this->nbs[1].",";
 				$this->resol_typ = Type_de_Resolution::operation_a_trou;
 				$this->result = $this->nbs[1];
+				$this->formul = $nbs_problem[$this->nbs[0]] . $this->formul;
+				$this->formul .= $nbs_problem[$this->nbs[2]];
 			}
 		}
 		else
@@ -103,6 +129,7 @@ class	SimplFormul
 				//$nbs_problem .= " ".$this->nbs[0].",";
 				$this->resol_typ = Type_de_Resolution::operation_a_trou;
 				$this->result = $this->nbs[0];
+				$this->formul = $nbs_problem[$this->nbs[1]] . $this->formul;
 			}
 			else
 			{

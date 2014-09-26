@@ -38,7 +38,7 @@ class	Answer
 		foreach ($this->simpl_formulas as $simpl_formula)
 		{
 			$tmp = new SimplFormul($simpl_formula[0], $nbs_problem);
-			$tmp->find_formul($this->simpl_fors);
+			//$tmp->find_formul($nbs_problem, $this->simpl_fors);
 			$tmp->_print();
 			$this->simpl_fors[$tmp->result] = $tmp->formul;
 			// SQL insertion
