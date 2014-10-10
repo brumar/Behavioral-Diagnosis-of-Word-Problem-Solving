@@ -14,13 +14,13 @@ class	SimplFormul
 	public $result;
 	public $formul;
 
-	public function		SimplFormul($str, $nbs_problem)
+	public function		SimplFormul($str, $nbs_problem, $simpl_fors)
 	{
 		$this->str = $str;
 		preg_match_all("/\d+/", $str, $nbs);
 		$this->nbs = $nbs[0];
 		$this->find_op_typ();
-		$this->find_resol_typ($nbs_problem);
+		$this->find_resol_typ($nbs_problem, $simpl_fors);
 		$this->find_miscalc();
 	}
 
@@ -81,10 +81,14 @@ class	SimplFormul
 	// $nbs_problem a la forme " x, y, z,"
 	// pour faciliter la reconnaissance des nombres
 	// et ne pas confondre 4 et 45 par exemple.
-	private function	find_resol_typ($nbs_problem)
+	private function	find_resol_typ($nbs_problem, $simpl_fors)
 	{
 		$is_nb0 = array_key_exists($this->nbs[0], $nbs_problem);
+		if ($is_nb0 === FALSE)
+			$is_nb0 = array_key_exists($this->nbs[0], $simpl_fors);
 		$is_nb1 = array_key_exists($this->nbs[1], $nbs_problem);
+		if ($is_nb1 === FALSE)
+			$is_nb1 = array_key_exists($this->nbs[1], $simpl_fors);
 		// Test de la substraction inverse
 		if ($this->op_typ === Type_d_Operation::substraction && $this->nbs[0] < $this->nbs[1])
 		{
@@ -100,8 +104,14 @@ class	SimplFormul
 			{
 				$this->resol_typ = Type_de_Resolution::simple_operation;
 				$this->result = $this->nbs[2];
-				$this->formul = $nbs_problem[$this->nbs[0]] . $this->formul;
-				$this->formul .= $nbs_problem[$this->nbs[1]];
+				if (array_key_exists($this->nbs[0], $nbs_problem) !== FALSE)
+					$this->formul = $nbs_problem[$this->nbs[0]] . $this->formul;
+				else
+					$this->formul = "(" . $simpl_fors[$this->nbs[0]] . ")" . $this->formul;
+				if (array_key_exists($this->nbs[1], $nbs_problem) !== FALSE)
+					$this->formul .= $nbs_problem[$this->nbs[1]];
+				else
+					$this->formul .= "(" . $simpl_fors[$this->nbs[1]] . ")";
 			}
 			else
 			{
@@ -114,7 +124,7 @@ class	SimplFormul
 					$this->formul = $nbs_problem[$this->nbs[2]] . " - ";
 					$this->formul .= $nbs_problem[$this->nbs[0]];
 				}
-				else	// soustraction a trou
+				else	// soustraction a trou standard
 				{
 					$this->resol_typ = Type_de_Resolution::operation_a_trou;
 					$this->formul = $nbs_problem[$this->nbs[0]] . $this->formul;

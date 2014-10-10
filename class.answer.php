@@ -7,12 +7,13 @@ class	Answer
 	private	$str;
 	private $simpl_formulas;
 	private $simpl_fors;
+	private	$simpl_fors_obj;
 
 	public function	Answer($str, $nbs_problem)
 	{
 		$this->str = $str;
-		$this->analyse($nbs_problem);
 		$this->simpl_fors = [];
+		$this->analyse($nbs_problem);
 	}
 
 	public function	_print()
@@ -35,14 +36,16 @@ class	Answer
 	{
 		$this->find_simpl_for();
 		//$id_answer = insert_answer($reponse);
+		$i = 0;
 		foreach ($this->simpl_formulas as $simpl_formula)
 		{
-			$tmp = new SimplFormul($simpl_formula[0], $nbs_problem);
+			$this->simpl_fors_obj[$i] = new SimplFormul($simpl_formula[0], $nbs_problem, $this->simpl_fors);
 			//$tmp->find_formul($nbs_problem, $this->simpl_fors);
-			$tmp->_print();
-			$this->simpl_fors[$tmp->result] = $tmp->formul;
+			$this->simpl_fors_obj[$i]->_print();
+			$this->simpl_fors[$this->simpl_fors_obj[$i]->result] = $this->simpl_fors_obj[$i]->formul;
 			// SQL insertion
 			// insert_formula($id_answer, $simpl_formula[0], $type_d_operation, $type_de_resolution, $calcul_error);
+			$i++;
 		}
 		print_r($this->simpl_fors);
 	}
