@@ -83,19 +83,11 @@ class	SimplFormul
 	// et ne pas confondre 4 et 45 par exemple.
 	private function	find_resol_typ($nbs_problem)
 	{
-		//$is_nb0 = strstr($nbs_problem, " ".$this->nbs[0].",");
-		//$is_nb1 = strstr($nbs_problem, " ".$this->nbs[1].",");
 		$is_nb0 = array_key_exists($this->nbs[0], $nbs_problem);
 		$is_nb1 = array_key_exists($this->nbs[1], $nbs_problem);
 		// Test de la substraction inverse
 		if ($this->op_typ === Type_d_Operation::substraction && $this->nbs[0] < $this->nbs[1])
 		{
-			/*
-			if ($is_nb0 === FALSE)
-				$nbs_problem .= " ".$this->nbs[0].",";
-			if ($is_nb1 === FALSE)
-				$nbs_problem .= " ".$this->nbs[1].",";
-			 */
 			$this->resol_typ = Type_de_Resolution::substraction_inverse;
 			$this->result = $this->nbs[2];
 			$this->formul = $nbs_problem[$this->nbs[1]] . $this->formul;
@@ -106,8 +98,6 @@ class	SimplFormul
 		{
 			if ($is_nb1 !== FALSE)
 			{
-				// On ajoute le resultat aux nombres connus :
-				//$nbs_problem .= " ".$this->nbs[2].",";
 				$this->resol_typ = Type_de_Resolution::simple_operation;
 				$this->result = $this->nbs[2];
 				$this->formul = $nbs_problem[$this->nbs[0]] . $this->formul;
@@ -115,26 +105,47 @@ class	SimplFormul
 			}
 			else
 			{
-				//$nbs_problem .= " ".$this->nbs[1].",";
-				$this->resol_typ = Type_de_Resolution::operation_a_trou;
 				$this->result = $this->nbs[1];
-				$this->formul = $nbs_problem[$this->nbs[0]] . $this->formul;
-				$this->formul .= $nbs_problem[$this->nbs[2]];
+				// Test de la soustraction par l'addition a trou
+				if ($this->op_typ === Type_d_Operation::addition)
+				{
+					$this->op_typ = Type_d_Operation::substraction;
+					$this->resol_typ = Type_de_Resolution::addition_a_trou;
+					$this->formul = $nbs_problem[$this->nbs[2]] . " - ";
+					$this->formul .= $nbs_problem[$this->nbs[0]];
+				}
+				else	// soustraction a trou
+				{
+					$this->resol_typ = Type_de_Resolution::operation_a_trou;
+					$this->formul = $nbs_problem[$this->nbs[0]] . $this->formul;
+					$this->formul .= $nbs_problem[$this->nbs[2]];
+				}
 			}
 		}
 		else
 		{
 			if ($is_nb1 !== FALSE)
 			{
-				//$nbs_problem .= " ".$this->nbs[0].",";
-				$this->resol_typ = Type_de_Resolution::operation_a_trou;
 				$this->result = $this->nbs[0];
-				$this->formul = $nbs_problem[$this->nbs[1]] . $this->formul;
+				// Test de l'addition par la soustraction a trou
+				if ($this->op_typ === Type_d_Operation::substraction)
+				{
+					$this->op_typ = Type_d_Operation::addition;
+					$this->resol_typ = Type_de_Resolution::substraction_a_trou;
+					$this->formul = $nbs_problem[$this->nbs[2]] . " + ";
+					$this->formul .= $nbs_problem[$this->nbs[1]];
+				}
+				// Test de la soustraction par l'addition a trou
+				else if ($this->op_typ === Type_d_Operation::addition)
+				{
+					$this->op_typ = Type_d_Operation::substraction;
+					$this->resol_typ = Type_de_Resolution::addition_a_trou;
+					$this->formul = $nbs_problem[$this->nbs[2]] . " - ";
+					$this->formul .= $nbs_problem[$this->nbs[1]];
+				}
 			}
 			else
 			{
-				//$nbs_problem .= " ".$this->nbs[0].",";
-				//$nbs_problem .= " ".$this->nbs[1].",";
 				$this->resol_typ = Type_de_Resolution::uninterpretable;
 				$this->result = $this->nbs[2];
 			}
@@ -148,23 +159,18 @@ class	SimplFormul
 		switch($this->op_typ)
 		{
 			case Type_d_Operation::addition :
-				if (($result = (int)$this->nbs[0] + (int)$this->nbs[1]) === (int)$this->nbs[2])
-					$this->miscalc = 0;
+				if ($this->resol_typ === Type_de_Resolution::substraction_a_trou)
+					$this->miscalc = abs((int)$this->nbs[2] - (int)$this->nbs[0] + (int)$this->nbs[1]);
 				else
-					$this->miscalc = abs((int)$this->nbs[2] - $result);
+					$this->miscalc = abs((int)$this->nbs[2] - (int)$this->nbs[0] - (int)$this->nbs[1]);
 				break;
 			case Type_d_Operation::substraction :
-				if ($this->resol_typ === Type_de_Resolution::substraction_inverse)
-				{
-					if (($result = (int)$this->nbs[1] - (int)$this->nbs[0]) === (int)$this->nbs[2])
-						$this->miscalc = 0;
-					else
-						$this->miscalc = abs((int)$this->nbs[2] - $result);
-				}
-				else if (($result = (int)$this->nbs[0] - (int)$this->nbs[1]) === (int)$this->nbs[2])
-					$this->miscalc = 0;
+				if ($this->resol_typ === Type_de_Resolution::addition_a_trou)
+					$this->miscalc = abs((int)$this->nbs[2] - (int)$this->nbs[0] - (int)$this->nbs[1]);
+				else if ($this->resol_typ === Type_de_Resolution::substraction_inverse)
+					$this->miscalc = abs((int)$this->nbs[2] - (int)$this->nbs[1] + (int)$this->nbs[0]);
 				else
-					$this->miscalc = abs((int)$this->nbs[2] - $result);
+					$this->miscalc = abs((int)$this->nbs[2] - (int)$this->nbs[0] + (int)$this->nbs[1]);
 		}
 	}
 

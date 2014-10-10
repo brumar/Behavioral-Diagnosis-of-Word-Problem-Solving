@@ -22,8 +22,8 @@ require_once('class.answer.php');
 
 //f("Wesh 43 + 2 = 46 gros ! Et 46 - 43 = 3 100 + 100 = 200 200 - 300 = 200", " 43, 46,");
 
-$str = "Wesh 43 + 2 = 46 gros ! Et 46 - 43 = 3 100 + 100 = 200 200 - 300 = 200";
-$nbs_problem = ["43"=>"N1", "46"=>"N2"];
+$str = "Wesh 2 + 43 = 46 gros ! Et 46 - 43 = 3 ; 48 - 4 = 46 ; 100 + 100 = 200 200 - 300 = 200";
+$nbs_problem = ["43"=>"N1", "46"=>"N2", "4"=>"N3"];
 $coucou = new Answer($str, $nbs_problem);
 
 
