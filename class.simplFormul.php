@@ -39,26 +39,6 @@ class	SimplFormul
 		echo "<br />";
 	}
 
-/*
-	// Computes:
-	// formula of type "N1 - N2", with help of other formulas' expressions.
-	public function		find_formul($nbs_problem, $arr_formul)
-	{
-		$this->formul = "";
-		$this->formul .= $nbs_problem[$this->nbs[0]];
-		switch ($this->op_typ)
-		{
-		case Type_d_Operation::addition :
-			$this->formul .= " + ";
-			break;
-		case Type_d_Operation::substraction :
-			$this->formul .= " - ";
-			break;
-		}
-		$this->formul .= $nbs_problem[$this->nbs[1]];
-	}
-*/
-
 	// Computes;
 	// - Operation type as in enum Type_d_Operation
 	private function	find_op_typ()
