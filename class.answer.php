@@ -17,7 +17,7 @@ class	Answer
 		$this->analyse($nbs_problem);
 		// SQL insertion
 		//$this->sql_insert($id_answer, $simpl_formula[0], $type_d_operation, $type_de_resolution, $calcul_error);
-		$this->sql_insert();
+//		$this->sql_insert();
 	}
 		
 	public function	sql_insert()
@@ -62,7 +62,7 @@ class	Answer
 			$i++;
 		}
 		$this->full_exp = $this->simpl_fors_obj[$i - 1]->formul;
-		print_r($this->simpl_fors);
+//		print_r($this->simpl_fors);
 	}
 }
 
