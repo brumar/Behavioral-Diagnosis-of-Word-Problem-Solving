@@ -17,7 +17,7 @@ class	SimplFormul
 	public function		SimplFormul($str, $nbs_problem, $simpl_fors)
 	{
 		$this->str = $str;
-		preg_match_all("/\d+/", $str, $nbs);
+		preg_match_all(RegexPatterns::number, $str, $nbs);
 		$this->nbs = $nbs[0];
 		$this->find_op_typ();
 		$this->find_resol_typ($nbs_problem, $simpl_fors);
