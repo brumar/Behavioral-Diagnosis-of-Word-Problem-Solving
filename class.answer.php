@@ -15,21 +15,6 @@ class	Answer
 		$this->str = $str;
 		$this->simpl_fors = [];
 		$this->analyse($nbs_problem);
-		// SQL insertion
-		//$this->sql_insert($id_answer, $simpl_formula[0], $type_d_operation, $type_de_resolution, $calcul_error);
-//		$this->sql_insert();
-	}
-		
-	public function	sql_insert()
-	{
-		$con = mysqli_connect("demo.local.42.fr","root","coucou","diane_adelie", "3301");
-		if (mysqli_connect_errno())
-			echo "Failed to connect to MySQL: " . mysqli_connect_error();
-		mysqli_query($con, "INSERT INTO answers (`string`, `full_expression`) VALUES ('$this->str', '$this->full_exp')")
-			or die(mysqli_error($con));
-		$id_answer = mysqli_insert_id($con);
-		mysqli_close($con);
-		return $id_answer;
 	}
 
 	public function	_print()
