@@ -1,7 +1,7 @@
 <?php
 
-require_once('enum.type_d_operation.php');
-require_once('enum.type_de_resolution.php');
+require_once('enums/enum.type_d_operation.php');
+require_once('enums/enum.type_de_resolution.php');
 require_once('simple_analysis_sql.php');
 
 // Outputs in navigator an analysis of

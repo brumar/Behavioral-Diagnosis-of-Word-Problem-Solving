@@ -20,12 +20,17 @@ require_once('class.answer.php');
 
 //echo "Hell yeah!<br />";
 
-//f("Wesh 43 + 2 = 46 gros ! Et 46 - 43 = 3 100 + 100 = 200 200 - 300 = 200", " 43, 46,");
-
-$str = "Wesh 2 + 43 = 46 gros ! 48 - 4 = 46 ; 48 - 2 = 47";//100 + 100 = 200 200 - 300 = 200";
 $nbs_problem = ["43"=>"N1", "46"=>"N2", "4"=>"N3"];
+$str = "46 - 43 = 3 fleurs 4 - 3 = 2 ; Cette reponse n'a aucun sens. 43 + 2 = 47";//100 + 100 = 200 200 - 300 = 200";
+
+echo "<u>Exemple de probleme :<br /></u>Les nombres de l'ennonce sont :<br />";
+print_r($nbs_problem);
+echo "<u><br /><br />Exemple de reponse d'eleve : </u><br /><i>$str</i><br /><br />";
+
+echo "<u>Deroule de l'analyse (qui aboutit a l'expression complete de la reponse) :<br /></u>";
 $coucou = new Answer($str, $nbs_problem);
 
+echo "<u>Evolutions possibles :</u><br />- Prediction de profondeur 1 pour les valeurs calculees de tete<br />- Formules imbriquees (ex 1 + 2 = 3 + 4 = 7)<br />";
 
 
 

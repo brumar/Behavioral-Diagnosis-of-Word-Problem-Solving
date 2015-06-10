@@ -20,13 +20,31 @@ require_once('class.answer.php');
 
 //echo "Hell yeah!<br />";
 
-//f("Wesh 43 + 2 = 46 gros ! Et 46 - 43 = 3 100 + 100 = 200 200 - 300 = 200", " 43, 46,");
+echo "<h2>Detection des types de resolution speciaux</h2>";
+$nbs_problem = ["3"=>"N1", "5"=>"N2", "4"=>"N3"];
+echo "Les nombres de l'ennonce sont :<br />";
+print_r($nbs_problem);
+echo "<br /><br />";
 
-$str = "Wesh 2 + 43 = 46 gros ! 48 - 4 = 46 ; 48 - 2 = 47";//100 + 100 = 200 200 - 300 = 200";
-$nbs_problem = ["43"=>"N1", "46"=>"N2", "4"=>"N3"];
+$str = "3 - 5 = 2";
 $coucou = new Answer($str, $nbs_problem);
 
+echo "<u><br />Les trois types d'operation a trou :</u><br /><br />";
 
+$str = "3 + 2 = 5";
+$coucou = new Answer($str, $nbs_problem);
+
+$str = "5 - 2 = 3";
+$coucou = new Answer($str, $nbs_problem);
+
+$str = "6 - 3 = 3";
+$coucou = new Answer($str, $nbs_problem);
+
+echo "<u><br />Non implementes :</u><br /><br />";
+
+echo "<strike>Detection de la confusion de signe</strike><br />";
+$str = "5 - 3 = 8";
+$coucou = new Answer($str, $nbs_problem);
 
 
 ?>
