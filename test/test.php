@@ -4,26 +4,26 @@
 </head>
 <body>
 <?php
+require_once('../simple_analysis.php');
+require_once('../class.answer.php');
 // The numbers for each problem
 $numbers=array();
-$numbers["C1t"]=array("P1"=>5,"T1"=>12,"d"=>3);
-$numbers["C1p"]=array("P1"=>5,"T1"=>12,"d"=>3);
-$numbers["C2t"]=array("P1"=>6,"T1"=>15,"d"=>2);
-$numbers["C2p"]=array("P1"=>6,"T1"=>15,"d"=>2);
-$numbers["C3t"]=array("P1"=>6,"T1"=>15,"d"=>2);
-$numbers["C3p"]=array("P1"=>6,"T1"=>15,"d"=>2);
-$numbers["C4t"]=array("P1"=>9,"T1"=>14,"d"=>2);
-$numbers["C4p"]=array("P1"=>9,"T1"=>14,"d"=>2);
-
-$numbers["T4t"]=array("P1"=>5,"T1"=>12,"d"=>3);
-$numbers["T4p"]=array("P1"=>5,"T1"=>12,"d"=>3);
-$numbers["T1t"]=array("P1"=>7,"T1"=>16,"d"=>3);
-$numbers["T3p"]=array("P1"=>7,"T1"=>16,"d"=>3);
-$numbers["T2t"]=array("P1"=>5,"T1"=>14,"d"=>2);
-$numbers["T2p"]=array("P1"=>5,"T1"=>14,"d"=>2);
-$numbers["T3t"]=array("P1"=>7,"T1"=>16,"d"=>2);
-$numbers["T1p"]=array("P1"=>7,"T1"=>16,"d"=>2);
-
+$numbers["T2p"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
+$numbers["T1t"]=array("6"=>"P1", "15"=>"T1", "2"=>"d");
+$numbers["T3t"]=array("6"=>"P1", "13"=>"T1", "2"=>"d");
+$numbers["C1p"]=array("7"=>"P1", "16"=>"T1", "4"=>"d");
+$numbers["C2p"]=array("6"=>"P1", "15"=>"T1", "4"=>"d");
+$numbers["C2t"]=array("9"=>"P1", "15"=>"T1", "4"=>"d");
+$numbers["C3p"]=array("8"=>"P1", "17"=>"T1", "3"=>"d");
+$numbers["C1t"]=array("7"=>"P1", "16"=>"T1", "4"=>"d");
+$numbers["C3t"]=array("9"=>"P1", "17"=>"T1", "3"=>"d");
+$numbers["C4p"]=array("7"=>"P1", "15"=>"T1", "3"=>"d");
+$numbers["C4t"]=array("7"=>"P1", "15"=>"T1", "3"=>"d");
+$numbers["T1p"]=array("6"=>"P1", "15"=>"T1", "4"=>"d");
+$numbers["T2t"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
+$numbers["T3p"]=array("6"=>"P1", "16"=>"T1", "2"=>"d");
+$numbers["T4p"]=array("7"=>"P1", "12"=>"T1", "3"=>"d");
+$numbers["T4t"]=array("7"=>"P1", "12"=>"T1", "3"=>"d");
 
 $row = 1;
 if ((($handleInput = fopen("part1_d.csv", "r")) !== FALSE)&&(($handleOutput = fopen("comparison.csv", "w")) !== FALSE)) {
@@ -43,10 +43,13 @@ if ((($handleInput = fopen("part1_d.csv", "r")) !== FALSE)&&(($handleOutput = fo
         $problem=$data[0];
         $answer=$data[1];
         $problemNumbers=$numbers[$problem];
-        echo "$problem => $answer<br>";
+        $a=new Answer($answer, $numbers[$problem]);
+        //var_dump($a);
+        //$analyse=$a->full_exp;
+        //echo ("$problem => $answer....Analyse=>$analyse<br>");
         
         // DIAGNOSE
-        
+
         // NB (1) : THE ABSOLUTE PRIORITY IS completeformula in $globalAnalysis, 
         // NB (2) : In case of doubts about how to fill the values,  if not solved by reading the CSV within 2 minutes, contact me :)
         
