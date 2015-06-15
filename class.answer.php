@@ -93,9 +93,7 @@ class	Answer
 				}
 				else{
 					$this->interpretable=False;
-					if($this->verbose==True){
-						print("too many or not enough mental calculations to understand this operations");
-					}
+					//too many or not enough mental calculations to understand this operations
 				}
 			}
 			// NO ELSE HERE
