@@ -6,14 +6,6 @@ require_once('enums/enum.type_d_operation.php');
 
 class	MentalFormul extends SimplFormul 
 {
-	private	$str;
-	private	$nbs;
-	private	$op_typ;
-	public	$resol_typ;
-	private	$miscalc;
-
-	public $result;
-	public $formul;
 
 	public function		MentalFormul($str, $nbs_problem, $simpl_fors)
 	{

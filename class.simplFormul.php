@@ -5,11 +5,11 @@ require_once('enums/enum.type_de_resolution.php');
 
 class	SimplFormul
 {
-	private	$str;
-	private	$nbs;
-	private	$op_typ;
-	private	$resol_typ;
-	private	$miscalc;
+	public	$str;
+	public	$nbs;
+	public	$op_typ;
+	public	$resol_typ;
+	public	$miscalc;
 
 	public $result;
 	public $formul;
