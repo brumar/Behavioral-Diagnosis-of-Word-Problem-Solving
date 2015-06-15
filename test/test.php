@@ -8,7 +8,7 @@ require_once('../simple_analysis.php');
 require_once('../class.answer.php');
 // The numbers for each problem
 $numbers=array();
-$numbers["T2p"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
+$numbers["T2p"]=array("5"=>"P1", "14"=>"T1", "3"=>"d");
 $numbers["T1t"]=array("6"=>"P1", "15"=>"T1", "2"=>"d");
 $numbers["T3t"]=array("6"=>"P1", "13"=>"T1", "2"=>"d");
 $numbers["C1p"]=array("7"=>"P1", "16"=>"T1", "4"=>"d");
