@@ -6,7 +6,8 @@ require_once('class.mentalFormul.php');
 
 class	Answer
 {
-	private	$str;
+	private	$strbrut;//text brut
+	private	$str; // text after some replacements
 	private	$nbs;//associative array "23"=>"N1"
 	private $numbersInProblem;//"23", etc...
 	private $availableMentalNumbers;// numbers that can be computed by a mental operation
@@ -19,6 +20,8 @@ class	Answer
 	private	$interp; //Boolean indicating if the answer as a whole is interpretable
 	private $verbose; //string indicating if verbal report or not (to debug)
 	
+	static $tabReplacements;
+	
 
 
 	public function	Answer($str, $nbs_problem,$verbose=False)
@@ -26,11 +29,12 @@ class	Answer
 		$this->availableMentalNumbers=[];
 		$this->verbose=$verbose;
 		$this->interpretable=True;
-		$this->str = $str;
+		$this->strbrut = $str;
 		$this->nbs=$nbs_problem;
 		$this->numbersInProblem=array_keys($this->nbs);
 		$this->availableNumbers=$this->numbersInProblem;
 		$this->simpl_fors = [];
+		$this->replaceElementsInAnswer();
 		$this->updateAvailableMentalNumbers();
 		$this->analyse($nbs_problem);
 	}
@@ -116,7 +120,6 @@ class	Answer
 				$this->updateAvailableNumbers();
 				$this->updateAvailableMentalNumbers();
 			}
-			
 		}
 	}
 	
@@ -131,13 +134,14 @@ class	Answer
 	
 	public function sortFormulas()
 	{
+		/*//NO SORTING ANYMORE => leads to many problems
 		$count=array();
 		foreach ($this->simpl_formulas as $simpl_formula)
 		{
 			$unknownCount=$this->unknownCount($simpl_formula);
 			$count[]=$unknownCount;
 		}
-		array_multisort($count, SORT_ASC,$this->simpl_formulas);
+		array_multisort($count, SORT_ASC,$this->simpl_formulas);*/
 	}
 	
 	public function detectMentalCalculations($formula){
@@ -159,6 +163,41 @@ class	Answer
 		$c=count(array_diff($numbersInFormula,$this->availableNumbers));
 		return $c;
 	}
+
+
+	public function initReplacements(){	
+		self::$tabReplacements['1']=array(' un ','01');
+		self::$tabReplacements['2']=array('deux',' deu ','02');
+		self::$tabReplacements['3']=array(' trois ',' troi ','03');  
+		self::$tabReplacements['4']=array(' quatre ',' catr ',' quatr ','04');
+		self::$tabReplacements['5']=array(' cinq ',' sinq ',' sinc ','05');
+		self::$tabReplacements['6']=array(' six ',' sis ',' cis ',' cix ','06');
+		self::$tabReplacements['7']=array(' sept ',' cept ','07');
+		self::$tabReplacements['8']=array(' huit ',' uit ','08');
+		self::$tabReplacements['9']=array(' neuf ',' nef ','09');
+		self::$tabReplacements['10']=array(' dix ',' dis ');		
+	}
+	
+	public function replaceElementsInAnswer(){
+		foreach (self::$tabReplacements as $index => $patterns)
+		{
+			$pattern_final='#';
+			foreach ($patterns as $pattern)
+			{
+				$pattern_final=$pattern_final.$pattern.'|';
+			}
+			$pattern_final = substr($pattern_final,0,strlen($pattern_final)-1);  //permet d'enlever le dernier 'ou' en trop
+			$pattern_final=$pattern_final.'#i';
+			$tab[$index]=$pattern_final;
+			}
+			$temp=$this->strbrut;
+			foreach ($tab as $index => $pattern)
+			{
+				$temp=preg_replace( $pattern,$index,$temp);		
+			}
+			$this->str=$temp;
+	}	
+	
 }
 
  function perm($arr, $n, $result = array())
@@ -181,5 +220,5 @@ class	Answer
 	if($n == 1) return $new_result;
 	return perm($arr, $n - 1, $new_result);
 }
-
+Answer::initReplacements();
 ?>
