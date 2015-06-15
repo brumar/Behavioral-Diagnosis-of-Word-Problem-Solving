@@ -46,6 +46,7 @@ class	Answer
 		/*  
 		 * Update Number list that can be reached by mental computation
 		 * */
+		$availableMentalNumbers=[];
 		$doublons=perm($this->availableNumbers,2);
 		$alreadySeen=$this->availableNumbers; // Numbers already computed or defined in the problem cannot be produced by mental calculation 
 		foreach($doublons as $doublon){
@@ -108,11 +109,13 @@ class	Answer
 					//too many or not enough mental calculations to understand this operations
 				}
 			}
-			// NO ELSE HERE
-			$formula=new SimplFormul($simpl_form, $nbs_problem, $this->simpl_fors);
-			$i=$this->addFormula($i,$formula);
-			$this->updateAvailableNumbers();
-			$this->updateAvailableMentalNumbers();
+			if($this->interpretable==True)
+			{
+				$formula=new SimplFormul($simpl_form, $nbs_problem, $this->simpl_fors);
+				$i=$this->addFormula($i,$formula);
+				$this->updateAvailableNumbers();
+				$this->updateAvailableMentalNumbers();
+			}
 			
 		}
 	}
