@@ -10,6 +10,7 @@ class	Answer
 	private	$nbs;//associative array "23"=>"N1"
 	private $numbersInProblem;//"23", etc...
 	private $availableMentalNumbers;// numbers that can be computed by a mental operation
+	private $availableNumbers;
 	
 	private	$full_exp;
 	private $simpl_formulas;//formulas as string
@@ -17,6 +18,7 @@ class	Answer
 	private	$simpl_fors_obj; //formulas as object
 	private	$interp; //Boolean indicating if the answer as a whole is interpretable
 	private $verbose; //string indicating if verbal report or not (to debug)
+	
 
 
 	public function	Answer($str, $nbs_problem,$verbose=False)
@@ -27,15 +29,25 @@ class	Answer
 		$this->str = $str;
 		$this->nbs=$nbs_problem;
 		$this->numbersInProblem=array_keys($this->nbs);
+		$this->availableNumbers=$this->numbersInProblem;
 		$this->simpl_fors = [];
 		$this->updateAvailableMentalNumbers();
 		$this->analyse($nbs_problem);
 	}
 	
+	public function updateAvailableNumbers(){
+		/*
+		 * Update Number list that have been reached by computation or are defined in the problem
+		* */
+		$this->availableNumbers=array_merge($this->availableNumbers,array_keys($this->simpl_fors));//TODO
+	}
+	
 	public function updateAvailableMentalNumbers(){
-		$Allnumbers=array_merge($this->numbersInProblem,array_keys($this->simpl_fors));
-		$doublons=perm($Allnumbers,2);
-		$alreadySeen=[];
+		/*  
+		 * Update Number list that can be reached by mental computation
+		 * */
+		$doublons=perm($this->availableNumbers,2);
+		$alreadySeen=$this->availableNumbers; // Numbers already computed or defined in the problem cannot be produced by mental calculation 
 		foreach($doublons as $doublon){
 			sort($doublon);
 			if($doublon[0]!=$doublon[1]){ // 42-42 and 42+42 are avoided
@@ -99,6 +111,9 @@ class	Answer
 			// NO ELSE HERE
 			$formula=new SimplFormul($simpl_form, $nbs_problem, $this->simpl_fors);
 			$i=$this->addFormula($i,$formula);
+			$this->updateAvailableNumbers();
+			$this->updateAvailableMentalNumbers();
+			
 		}
 	}
 	
@@ -138,7 +153,7 @@ class	Answer
 	{
 		preg_match_all(RegexPatterns::number, $simpl_formula, $nbs);
 		$numbersInFormula=$nbs[0];
-		$c=count(array_diff($numbersInFormula,$this->numbersInProblem));
+		$c=count(array_diff($numbersInFormula,$this->availableNumbers));
 		return $c;
 	}
 }
