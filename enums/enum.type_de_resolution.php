@@ -29,6 +29,9 @@ function	print_tdr($type_de_resolution)
 		case Type_de_Resolution::substraction_simple :
 			echo "soustraction simple";
 			break;
+		case Type_de_Resolution::operation_mentale :
+			echo "calcul mental";
+			break;
 		case Type_de_Resolution::substraction_a_trou :
 			echo "soustraction a trou";
 			break;
