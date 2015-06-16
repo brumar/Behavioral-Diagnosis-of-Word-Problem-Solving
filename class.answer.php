@@ -181,7 +181,11 @@ class	Answer
 		self::$tabReplacements['french']['7']=array(' sept ',' cept ','07');
 		self::$tabReplacements['french']['8']=array(' huit ',' uit ','08');
 		self::$tabReplacements['french']['9']=array(' neuf ',' nef ','09');
-		self::$tabReplacements['french']['10']=array(' dix ',' dis ');	
+		self::$tabReplacements['french']['10']=array(' dix ',' dis ');
+		self::$tabReplacements['french']['CM_un_']=array('CM1');
+		self::$tabReplacements['french']['CM_deux_']=array('CM2');
+		self::$tabReplacements['french']['CE_un_']=array('CE1');
+		self::$tabReplacements['french']['CE_deux_']=array('CE2');
 	}
 	
 	public function replaceElementsInAnswer(){
