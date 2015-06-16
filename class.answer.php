@@ -124,6 +124,10 @@ class	Answer
 			}
 		}
 	}
+
+	public function findAnswer(){
+		
+	}
 	
 	public function addFormula($i,$formula){
 		$this->simpl_fors_obj[$i]=$formula;
@@ -168,26 +172,21 @@ class	Answer
 
 
 	static function initReplacements(){	
-		if($this->langage=="french")
-		{
-			self::$tabReplacements['1']=array(' un ','01');
-			self::$tabReplacements['2']=array('deux',' deu ','02');
-			self::$tabReplacements['3']=array(' trois ',' troi ','03');  
-			self::$tabReplacements['4']=array(' quatre ',' catr ',' quatr ','04');
-			self::$tabReplacements['5']=array(' cinq ',' sinq ',' sinc ','05');
-			self::$tabReplacements['6']=array(' six ',' sis ',' cis ',' cix ','06');
-			self::$tabReplacements['7']=array(' sept ',' cept ','07');
-			self::$tabReplacements['8']=array(' huit ',' uit ','08');
-			self::$tabReplacements['9']=array(' neuf ',' nef ','09');
-			self::$tabReplacements['10']=array(' dix ',' dis ');	
-		}
-		else{
-			self::$tabReplacements=[];
-		}	
+		self::$tabReplacements['french']['1']=array(' un ','01');
+		self::$tabReplacements['french']['2']=array('deux',' deu ','02');
+		self::$tabReplacements['french']['3']=array(' trois ',' troi ','03');  
+		self::$tabReplacements['french']['4']=array(' quatre ',' catr ',' quatr ','04');
+		self::$tabReplacements['french']['5']=array(' cinq ',' sinq ',' sinc ','05');
+		self::$tabReplacements['french']['6']=array(' six ',' sis ',' cis ',' cix ','06');
+		self::$tabReplacements['french']['7']=array(' sept ',' cept ','07');
+		self::$tabReplacements['french']['8']=array(' huit ',' uit ','08');
+		self::$tabReplacements['french']['9']=array(' neuf ',' nef ','09');
+		self::$tabReplacements['french']['10']=array(' dix ',' dis ');	
 	}
 	
 	public function replaceElementsInAnswer(){
-		foreach (self::$tabReplacements as $index => $patterns)
+		$repTable=self::$tabReplacements[$this->langage];
+		foreach ($repTable as $index => $patterns)
 		{
 			$pattern_final='#';
 			foreach ($patterns as $pattern)
