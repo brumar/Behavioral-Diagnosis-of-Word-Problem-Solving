@@ -165,7 +165,7 @@ class	Answer
 	}
 
 
-	public function initReplacements(){	
+	static function initReplacements(){	
 		self::$tabReplacements['1']=array(' un ','01');
 		self::$tabReplacements['2']=array('deux',' deu ','02');
 		self::$tabReplacements['3']=array(' trois ',' troi ','03');  
