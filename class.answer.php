@@ -12,6 +12,7 @@ class	Answer
 	private $numbersInProblem;//"23", etc...
 	private $availableMentalNumbers;// numbers that can be computed by a mental operation
 	private $availableNumbers;
+	private $langage;
 	
 	private	$full_exp;
 	private $simpl_formulas;//formulas as string
@@ -24,7 +25,7 @@ class	Answer
 	
 
 
-	public function	Answer($str, $nbs_problem,$verbose=False)
+	public function	Answer($str, $nbs_problem,$verbose=False,$langage="french")
 	{
 		$this->availableMentalNumbers=[];
 		$this->verbose=$verbose;
@@ -34,6 +35,7 @@ class	Answer
 		$this->numbersInProblem=array_keys($this->nbs);
 		$this->availableNumbers=$this->numbersInProblem;
 		$this->simpl_fors = [];
+		$this->langage=$langage; //TODO an enum would be better
 		$this->replaceElementsInAnswer();
 		$this->updateAvailableMentalNumbers();
 		$this->analyse($nbs_problem);
@@ -166,16 +168,22 @@ class	Answer
 
 
 	static function initReplacements(){	
-		self::$tabReplacements['1']=array(' un ','01');
-		self::$tabReplacements['2']=array('deux',' deu ','02');
-		self::$tabReplacements['3']=array(' trois ',' troi ','03');  
-		self::$tabReplacements['4']=array(' quatre ',' catr ',' quatr ','04');
-		self::$tabReplacements['5']=array(' cinq ',' sinq ',' sinc ','05');
-		self::$tabReplacements['6']=array(' six ',' sis ',' cis ',' cix ','06');
-		self::$tabReplacements['7']=array(' sept ',' cept ','07');
-		self::$tabReplacements['8']=array(' huit ',' uit ','08');
-		self::$tabReplacements['9']=array(' neuf ',' nef ','09');
-		self::$tabReplacements['10']=array(' dix ',' dis ');		
+		if($this->langage=="french")
+		{
+			self::$tabReplacements['1']=array(' un ','01');
+			self::$tabReplacements['2']=array('deux',' deu ','02');
+			self::$tabReplacements['3']=array(' trois ',' troi ','03');  
+			self::$tabReplacements['4']=array(' quatre ',' catr ',' quatr ','04');
+			self::$tabReplacements['5']=array(' cinq ',' sinq ',' sinc ','05');
+			self::$tabReplacements['6']=array(' six ',' sis ',' cis ',' cix ','06');
+			self::$tabReplacements['7']=array(' sept ',' cept ','07');
+			self::$tabReplacements['8']=array(' huit ',' uit ','08');
+			self::$tabReplacements['9']=array(' neuf ',' nef ','09');
+			self::$tabReplacements['10']=array(' dix ',' dis ');	
+		}
+		else{
+			self::$tabReplacements=[];
+		}	
 	}
 	
 	public function replaceElementsInAnswer(){
