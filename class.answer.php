@@ -22,9 +22,13 @@ class	Answer
 	private $simpl_formulas;//formulas as string
 	private $simpl_fors; // bind computed numbers to their formula
 	private	$simpl_fors_obj; //formulas as object
+	private	$lastFormula; //the formula as object that compute the answer
 	private	$interp; //Boolean indicating if the answer as a whole is interpretable
 	private $verbose; //string indicating if verbal report or not (to debug)
 	private $finalAnswer="";//final answer given by the subject
+	private $finalFormula="";//final answer given by the subject
+	private $id;
+	private $ininterpretable=False;
 	
 	static $tabReplacements;
 	
@@ -42,15 +46,26 @@ class	Answer
 		$this->availableNumbers=$this->numbersInProblem;
 		$this->simpl_fors = [];
 		$this->simpl_fors_obj=[];
+		$this->id=$id;
 		
 		$this->langage=$langage; //TODO an enum would be better
-		$this->loginit ($id);//$id is for log only (in order to ease browsing)
+		$this->process ();// TODO should be commented out one day
+
+	}
+	/**
+	 * 
+	 */public function process() {
+		$this->loginit ($this->id);//$id is for log only (in order to ease browsing)
 		$this->replaceElementsInAnswer();
 		$this->updateAvailableMentalNumbers();
-		$this->sequentialAnalysis($nbs_problem);
+		$this->findFinalAnswer();
+		$this->find_simpl_for();
+		$this->sortFormulas();
+		$this->sequentialAnalysis($this->nbs); // most important line
 		$this->globalAnalysis();
 		$this->printSummary();
 	}
+
 	
 	public function printSummary(){
 		if($this->verbose==True){
@@ -139,7 +154,6 @@ class	Answer
 		/*
 		 * Update Number list that can be reached by mental computation
 		* */
-		$this->preAnalyse ();
 
 		$i = 0; //TODO it's possible to get rid of $i at the condition to be careful that addFormula work well
 		foreach ($this->simpl_formulas as $s=>$simpl_form)
@@ -191,6 +205,33 @@ class	Answer
 	
 	public function	globalAnalysis()
 	{
+		if(count($this->simpl_fors_obj)==0){
+			$this->ininterpretable=True;//TODO : global status of the answer as an enum, it would allow more  precise information such as "no formula detected"
+			$this->logger->info("No formula Found");
+			return ;
+		}
+		if($this->finalAnswer!=""){
+			$found=False;
+			foreach (array_reverse($this->simpl_fors_obj) as $formOb){
+				if ($formOb->result==$this->finalAnswer){
+					$this->logger->info("final formula is $formOb->str ");
+					$this->logger->info("then the summary formula is : $formOb->formul ");
+					$this->finalFormula=$formOb->formul;
+					$found=True;
+				}
+			}
+			if($found==False){
+				$this->logger->info("NO FORMULA EXPLAINS THE NUMBER GIVEN AS AN ANSWER");
+				$this->ininterpretable=True;
+				// TOTHINK Would it be too much charitable to test if it comes from a mental computation ?
+			}
+		}
+		else{//if no answer explitely given ones take the last formula as referent
+			$lform=end($this->simpl_fors_obj);
+			$this->logger->info("final formula (by default) is $lform->str ");
+			$this->logger->info("then the summary formula is : $lform->formul ");
+			$this->finalFormula=$lform->formul;
+			}
 		//TODO : 
 		
 	}
@@ -238,11 +279,7 @@ class	Answer
 		$this->logger->error("no mental computation has been droped, this is unexpected");
 	}
 	
-	public function preAnalyse() {
-		$this->findFinalAnswer();
-		$this->find_simpl_for();
-		$this->sortFormulas();
-	}
+
 
 
 	public function findFinalAnswer(){
