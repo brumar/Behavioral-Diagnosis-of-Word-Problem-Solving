@@ -5,7 +5,8 @@ abstract class RegexPatterns
 {
 	const	completeOperation = "/\d+\s*[+*-\/]\s*\d+\s*=\s*\d+/"; // take all the formulas
 	const   EndresultAfterFormulas="/[^=\d]+(\d+)*[^=\d]*$/"; // do not control for formula existence and take the last isolated number
-	const   LastNumberAfterEqualSign="/=\s*(\d+)[^=]*$/";
+	const   veryLastNumberAfterEqualSign="/=\s*(\d+)[^=]*$/";
+	const   lastNumberInFormula="/=\s*(\d+)/";
 	const 	isolatedNumbersAfterFormulas="/(?:\d+\s*[+*-\/]\s*\d+\s*=\s*\d*[^\d]*)*((\d+)[^\d])+/"; //g option (multi match)
 	const	number = "/\d+/";
 	
