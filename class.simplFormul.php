@@ -13,19 +13,38 @@ class	SimplFormul
 
 	public $result;
 	public $formul;
+	public $logger;
 
-	public function		SimplFormul($str, $nbs_problem, $simpl_fors)
+	public function		SimplFormul($str, $nbs_problem, $simpl_fors,$logger)
 	{
+		$this->logger=$logger;
 		$this->str = $str;
+		$this->logger->info("more precise investigation of the formula $str");
 		$this->findNumbers();
 		$this->find_op_typ();
 		$this->find_resol_typ($nbs_problem, $simpl_fors);
 		$this->find_miscalc();
+		$this->logSummary();
 	}
 	
 	public function findNumbers(){
 		preg_match_all(RegexPatterns::number, $this->str, $nbs);
-		$this->nbs = $nbs[0];				
+		$this->nbs = $nbs[0];
+		$this->logger->info("numbers found : ");
+		$this->logger->info($this->nbs);
+	}
+	
+	public function logSummary(){
+		{
+			$top=print_tdo($this->op_typ,True);
+			$tres=print_tdr($this->resol_typ,True);
+			$this->logger->info("Formule : $this->str");
+			$this->logger->info("Type d'operation : $top ");
+			$this->logger->info("Type de resolution : $tres ");
+			if ($this->miscalc > 0)
+				$this->logger->info("Contient une erreur de calcul de $this->miscalc.");
+			$this->logger->info("Expression : $this->formul");
+			}
 	}
 
 	public function		_print()
@@ -57,6 +76,8 @@ class	SimplFormul
 			$this->op_typ = Type_d_Operation::substraction;
 			$this->formul = " - ";
 		}
+		$this->logger->info("signe de l'opération : ");
+		$this->logger->info($this->formul);
 	}
 
 	// Outputs:
@@ -67,9 +88,12 @@ class	SimplFormul
 	// et ne pas confondre 4 et 45 par exemple.
 	private function	find_resol_typ($nbs_problem, $simpl_fors)
 	{
+		$this->logger->info("try to find operation type");
+
 		$is_nb0 = array_key_exists($this->nbs[0], $nbs_problem);
 		if ($is_nb0 === FALSE)
-			$is_nb0 = array_key_exists($this->nbs[0], $simpl_fors);
+			$is_nb0 = array_key_exists($this->nbs[0], $simpl_fors); 
+			// if the number is not in the pbms, we look if it's in another formula
 		$is_nb1 = array_key_exists($this->nbs[1], $nbs_problem);
 		if ($is_nb1 === FALSE)
 			$is_nb1 = array_key_exists($this->nbs[1], $simpl_fors);

@@ -42,8 +42,9 @@ if ((($handleInput = fopen("part1_d.csv", "r")) !== FALSE)&&(($handleOutput = fo
         $num = count($data);
         $problem=$data[0];
         $answer=$data[1];
+        echo(" index row : $row <br>");
         $problemNumbers=$numbers[$problem];
-        $a=new Answer($answer, $numbers[$problem]);
+        $a=new Answer($answer, $numbers[$problem],True);
         //var_dump($a);
         //$analyse=$a->full_exp;
         //echo ("$problem => $answer....Analyse=>$analyse<br>");
