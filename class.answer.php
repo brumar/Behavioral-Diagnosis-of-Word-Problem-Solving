@@ -4,7 +4,7 @@ require_once('class.simplFormul.php');
 require_once('enums/enum.regexPatterns.php');
 require_once('class.mentalFormul.php');
 require_once('logger/Logger.php');
-Logger::configure('configLogger.xml');// Tell log4php to use our configuration file.
+Logger::configure('../configLogger.xml');// Tell log4php to use our configuration file.
 
 
 class	Answer
@@ -41,6 +41,7 @@ class	Answer
 		$this->numbersInProblem=array_keys($this->nbs);
 		$this->availableNumbers=$this->numbersInProblem;
 		$this->simpl_fors = [];
+		$this->simpl_fors_obj=[];
 		
 		$this->langage=$langage; //TODO an enum would be better
 		$this->loginit ($id);//$id is for log only (in order to ease browsing)
@@ -173,7 +174,7 @@ class	Answer
 					
 					default:
 						$formlulaIsInterpretable=False;
-						$this->info("interpretation process of the current formula has failed at this point");
+						$this->logger->info("interpretation process of the current formula has failed at this point");
 						break;
 					//too many or not enough mental calculations to understand this operations
 				}
@@ -201,7 +202,7 @@ class	Answer
 			foreach($listOfMentalCalculations as $i=>$mcal){
 				if($mcal->result==$this->finalAnswer){
 					$this->logger->info("We drop this mental computation because it's the final answer given by the student");
-					$this->logger->info($listOfMentalCalculations[$i]["str"]);
+					$this->logger->info($listOfMentalCalculations[$i]->str);
 					unset($listOfMentalCalculations[$i]);
 					return $listOfMentalCalculations;
 				}
@@ -215,7 +216,7 @@ class	Answer
 				foreach($numbersInFormula as $nb){
 					if($mcal->result==$nb){
 						$this->logger->info("We drop this mental computation because the number is reused later by the student");
-						$this->logger->info($listOfMentalCalculations[$i]["str"]);
+						$this->logger->info($listOfMentalCalculations[$i]->str);
 						unset($listOfMentalCalculations[$i]);
 						return $listOfMentalCalculations;
 					}
