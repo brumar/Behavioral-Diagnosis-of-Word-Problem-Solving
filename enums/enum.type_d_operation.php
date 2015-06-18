@@ -9,18 +9,25 @@ abstract class Type_d_Operation
 	private function	_construct(){}
 }
 
-function	print_tdo($type_d_operation)
+function	print_tdo($type_d_operation,$silent=False)
 {
+	$message="";
 	switch($type_d_operation)
-	{
+	{	
 		case Type_d_Operation::addition :
-			echo "addition";
+			$message= "addition";
 			break;
 		case Type_d_Operation::substraction :
-			echo "substraction";
+			$message= "substraction";
 			break;
 		default :
-			echo "(type d'operation non reconnu)";
+			$message= "(type d'operation non reconnu)";
+	}
+	if($silent==True){
+		return $message;
+	}
+	else {
+		echo $message;
 	}
 }
 

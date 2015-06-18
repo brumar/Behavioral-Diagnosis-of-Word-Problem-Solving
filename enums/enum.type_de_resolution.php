@@ -16,39 +16,46 @@ abstract class Type_de_Resolution
 	private function	_construct(){}
 }
 
-function	print_tdr($type_de_resolution)
+function	print_tdr($type_de_resolution,$silent=False)
 {
+	$message="";
 	switch($type_de_resolution)
 	{
 		case Type_de_Resolution::addition_simple :
-			echo "addition simple";
+			$message= "addition simple";
 			break;
 		case Type_de_Resolution::addition_a_trou :
-			echo "addition a trou";
+			$message= "addition a trou";
 			break;
 		case Type_de_Resolution::substraction_simple :
-			echo "soustraction simple";
+			$message= "soustraction simple";
 			break;
 		case Type_de_Resolution::operation_mentale :
-			echo "calcul mental";
+			$message= "calcul mental";
 			break;
 		case Type_de_Resolution::substraction_a_trou :
-			echo "soustraction a trou";
+			$message= "soustraction a trou";
 			break;
 		case Type_de_Resolution::simple_operation :
-			echo "operation simple";
+			$message= "operation simple";
 			break;
 		case Type_de_Resolution::operation_a_trou :
-			echo "operation a trou";
+			$message= "operation a trou";
 			break;
 		case Type_de_Resolution::substraction_inverse :
-			echo "soustraction inverse";
+			$message= "soustraction inverse";
 			break;
 		case Type_de_Resolution::uninterpretable :
-			echo "ininterpretable";
+			$message= "ininterpretable";
 			break;
 		default :
-			echo "(type de resolution non reconnu)";
+			$message= "(type de resolution non reconnu)";
+	}
+	if($silent==False){
+		echo($message);
+	}
+	else{
+		return $message;
 	}
 }
 
