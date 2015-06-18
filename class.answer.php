@@ -46,7 +46,18 @@ class	Answer
 		$this->loginit ($id);//$id is for log only (in order to ease browsing)
 		$this->replaceElementsInAnswer();
 		$this->updateAvailableMentalNumbers();
-		$this->analyse($nbs_problem);
+		$this->sequentialAnalysis($nbs_problem);
+		$this->globalAnalysis();
+		$this->printSummary();
+	}
+	
+	public function printSummary(){
+		if($this->verbose==True){
+			foreach($this->simpl_fors_obj as $form)
+			{
+				$form->_print();
+			}
+		}
 	}
 	
 	public function loginit($id) {
@@ -97,8 +108,8 @@ class	Answer
 		}
 		$this->logger->info("availableMentalNumbers :");
 		$this->logger->info(array_keys($availableMentalNumbers));
-		$this->logger->trace("availableMentalNumbers : détails");
-		$this->logger->trace($availableMentalNumbers);
+		/*$this->logger->trace("availableMentalNumbers : détails");// to uncomment whenever there is a way to read log file with filter trace
+		$this->logger->trace($availableMentalNumbers);*/
 		$this->availableMentalNumbers=$availableMentalNumbers;	
 	}
 
@@ -122,8 +133,11 @@ class	Answer
 	// Analyses a simple arithmetic problem answer.
 	// WORKS ONLY FOR ADDITIONS / SUBSTRACTIONS!
 	// NO NEGATIVE NUMBERS ALLOWED!
-	public function	analyse($nbs_problem,$verbose=True)
+	public function	sequentialAnalysis($nbs_problem,$verbose=True)
 	{
+		/*
+		 * Update Number list that can be reached by mental computation
+		* */
 		$this->preAnalyse ();
 
 		$i = 0; //TODO it's possible to get rid of $i at the condition to be careful that addFormula work well
@@ -172,6 +186,12 @@ class	Answer
 				$this->updateAvailableMentalNumbers();
 			}
 		}
+	}
+	
+	public function	globalAnalysis()
+	{
+		//TODO : 
+		
 	}
 	
 	public function dropLeastProbableMentalCalculations($listOfMentalCalculations,$simpl_form,$next_form){
@@ -237,9 +257,6 @@ class	Answer
 	
 	public function addFormula($i,$formula){
 		$this->simpl_fors_obj[$i]=$formula;
-		if($this->verbose==True){
-			$this->simpl_fors_obj[$i]->_print();
-		}
 		$this->simpl_fors[$this->simpl_fors_obj[$i]->result] = $this->simpl_fors_obj[$i]->formul;
 		return $i;			
 	}
