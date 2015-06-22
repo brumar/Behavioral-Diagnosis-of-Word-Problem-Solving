@@ -26,7 +26,7 @@ class	Answer
 	private	$interp; //Boolean indicating if the answer as a whole is interpretable
 	private $verbose; //string indicating if verbal report or not (to debug)
 	private $finalAnswer="";//final answer given by the subject
-	private $finalFormula="";//final answer given by the subject
+	public $finalFormula="";//final formula representing the whole solving process
 	private $id;
 	private $ininterpretable=False;
 	
@@ -205,6 +205,7 @@ class	Answer
 	
 	public function	globalAnalysis()
 	{
+		// todo detect RMI here
 		if(count($this->simpl_fors_obj)==0){
 			$this->ininterpretable=True;//TODO : global status of the answer as an enum, it would allow more  precise information such as "no formula detected"
 			$this->logger->info("No formula Found");
