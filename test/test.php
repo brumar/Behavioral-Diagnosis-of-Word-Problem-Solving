@@ -8,20 +8,20 @@ require_once('../simple_analysis.php');
 require_once('../class.answer.php');
 // The numbers for each problem
 $numbers=array();
-$numbers["T2p"]=array("5"=>"P1", "14"=>"T1", "3"=>"d");
-$numbers["T1t"]=array("6"=>"P1", "15"=>"T1", "2"=>"d");
+$numbers["T2p"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
+$numbers["T1t"]=array("6"=>"P1", "15"=>"T1", "4"=>"d");
 $numbers["T3t"]=array("6"=>"P1", "13"=>"T1", "2"=>"d");
 $numbers["C1p"]=array("7"=>"P1", "16"=>"T1", "4"=>"d");
-$numbers["C2p"]=array("6"=>"P1", "15"=>"T1", "4"=>"d");
+$numbers["C2p"]=array("9"=>"P1", "15"=>"T1", "4"=>"d");
 $numbers["C2t"]=array("9"=>"P1", "15"=>"T1", "4"=>"d");
-$numbers["C3p"]=array("8"=>"P1", "17"=>"T1", "3"=>"d");
+$numbers["C3p"]=array("9"=>"P1", "17"=>"T1", "3"=>"d");
 $numbers["C1t"]=array("7"=>"P1", "16"=>"T1", "4"=>"d");
 $numbers["C3t"]=array("9"=>"P1", "17"=>"T1", "3"=>"d");
 $numbers["C4p"]=array("7"=>"P1", "15"=>"T1", "3"=>"d");
 $numbers["C4t"]=array("7"=>"P1", "15"=>"T1", "3"=>"d");
 $numbers["T1p"]=array("6"=>"P1", "15"=>"T1", "4"=>"d");
 $numbers["T2t"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
-$numbers["T3p"]=array("6"=>"P1", "16"=>"T1", "2"=>"d");
+$numbers["T3p"]=array("6"=>"P1", "13"=>"T1", "2"=>"d");
 $numbers["T4p"]=array("7"=>"P1", "12"=>"T1", "3"=>"d");
 $numbers["T4t"]=array("7"=>"P1", "12"=>"T1", "3"=>"d");
 
@@ -43,8 +43,6 @@ if ((($handleInput = fopen("part1_d.csv", "r")) !== FALSE)&&(($handleOutput = fo
         $problem=$data[0];
         $answer=$data[1];
         echo(" index row : $row <br>");
-        $problemNumbers=$numbers[$problem];
-        $a=new Answer($answer, $numbers[$problem],True);
         //var_dump($a);
         //$analyse=$a->full_exp;
         //echo ("$problem => $answer....Analyse=>$analyse<br>");
@@ -61,14 +59,17 @@ if ((($handleInput = fopen("part1_d.csv", "r")) !== FALSE)&&(($handleOutput = fo
         $elementsGlobalAnalysis= array('completeformula', 'operation','correct_computation', 'correct_identification');
         $globalAnalysis = array_fill_keys($elementsGlobalAnalysis, '');
         
+        
         /*
          * 
          * CALL YOUR PARSING STUFF THERE
          * The goal is to fill these arrays
-         * THE ABSOLUTE PRIORITY IS completeformula in $globalAnalysis,
-         * In case of doubts about how to fill the values,  if not solved by 1) the indications below 2) checking the work of Valentine reading the CSV within 2 minutes, contact me
-         * 
-         */
+         * THE ABSOLUTE PRIORITY IS completeformula in $globalAnalysis*/
+        
+        $problemNumbers=$numbers[$problem];
+        $a=new Answer($answer, $numbers[$problem],True,"french",strval($row));
+        $globalAnalysis["completeformula"]=str_replace(' ', '', $a->finalFormula);
+         
         
         
         // ************ SOME INDICATIONS ABOUT THE VALUES*******************
@@ -135,15 +136,15 @@ $count=0;
 if ((($handleInput = fopen("comparison.csv", "r")) !== FALSE)) {
 	$titles = fgetcsv($handleInput, 541, ";"); //pop the first line (headers of columns)
 	while (($data = fgetcsv($handleInput, 541, ";")) !== FALSE) {
-		$t_val=$titles[$target];
-		$t_adel=$titles[$target+1];
+		$t_val=$data[$target];
+		$t_adel=$data[$target+1];
 		if($t_val==$t_adel){
  			$success++;
 		}
 		$count++;
 	}
 	$rapport=($success/$count)*100;
-	echo "success rate over the $i collumn is $rapport";
+	echo "success rate over the $target collumn is $rapport";
 }
 
 ?>
