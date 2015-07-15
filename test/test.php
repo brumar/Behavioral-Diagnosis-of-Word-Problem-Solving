@@ -8,25 +8,42 @@ require_once('../simple_analysis.php');
 require_once('../class.answer.php');
 // The numbers for each problem
 $numbers=array();
-$numbers["T2p"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
-$numbers["T1t"]=array("6"=>"P1", "15"=>"T1", "4"=>"d");
-$numbers["T3t"]=array("6"=>"P1", "13"=>"T1", "2"=>"d");
-$numbers["C1p"]=array("7"=>"P1", "16"=>"T1", "4"=>"d");
-$numbers["C2p"]=array("9"=>"P1", "15"=>"T1", "4"=>"d");
-$numbers["C2t"]=array("9"=>"P1", "15"=>"T1", "4"=>"d");
-$numbers["C3p"]=array("9"=>"P1", "17"=>"T1", "3"=>"d");
-$numbers["C1t"]=array("7"=>"P1", "16"=>"T1", "4"=>"d");
-$numbers["C3t"]=array("9"=>"P1", "17"=>"T1", "3"=>"d");
-$numbers["C4p"]=array("7"=>"P1", "15"=>"T1", "3"=>"d");
-$numbers["C4t"]=array("7"=>"P1", "15"=>"T1", "3"=>"d");
-$numbers["T1p"]=array("6"=>"P1", "15"=>"T1", "4"=>"d");
-$numbers["T2t"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
-$numbers["T3p"]=array("6"=>"P1", "13"=>"T1", "2"=>"d");
-$numbers["T4p"]=array("7"=>"P1", "12"=>"T1", "3"=>"d");
-$numbers["T4t"]=array("7"=>"P1", "12"=>"T1", "3"=>"d");
+$numbers["Tp2_v2"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
+$numbers["Tt1_v2"]=array("6"=>"P1", "15"=>"T1", "4"=>"d");
+$numbers["Tt3_v2"]=array("6"=>"P1", "13"=>"T1", "2"=>"d");
+$numbers["Cp1_v2"]=array("7"=>"P1", "16"=>"T1", "4"=>"d");
+$numbers["Cp2_v2"]=array("9"=>"P1", "15"=>"T1", "4"=>"d");
+$numbers["Ct2_v2"]=array("9"=>"P1", "15"=>"T1", "4"=>"d");
+$numbers["Cp3_v2"]=array("9"=>"P1", "17"=>"T1", "3"=>"d");
+$numbers["Ct1_v2"]=array("7"=>"P1", "16"=>"T1", "4"=>"d");
+$numbers["Ct3_v2"]=array("9"=>"P1", "17"=>"T1", "3"=>"d");
+$numbers["Cp4_v2"]=array("7"=>"P1", "15"=>"T1", "3"=>"d");
+$numbers["Ct4_v2"]=array("7"=>"P1", "15"=>"T1", "3"=>"d");
+$numbers["Tp1_v2"]=array("6"=>"P1", "15"=>"T1", "4"=>"d");
+$numbers["Tt2_v2"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
+$numbers["Tp3_v2"]=array("6"=>"P1", "13"=>"T1", "2"=>"d");
+$numbers["Tp4_v2"]=array("7"=>"P1", "12"=>"T1", "3"=>"d");
+$numbers["Tt4_v2"]=array("7"=>"P1", "12"=>"T1", "3"=>"d");
+
+$numbers["Ct1_v1"]=array("5"=>"P1", "12"=>"T1", "3"=>"d");
+$numbers["Cp1_v1"]=array("5"=>"P1", "12"=>"T1", "3"=>"d");
+$numbers["Ct2_v1"]=array("6"=>"P1", "15"=>"T1", "2"=>"d");
+$numbers["Cp2_v1"]=array("6"=>"P1", "15"=>"T1", "2"=>"d");
+$numbers["Ct3_v1"]=array("6"=>"P1", "15"=>"T1", "2"=>"d");
+$numbers["Cp3_v1"]=array("6"=>"P1", "15"=>"T1", "2"=>"d");
+$numbers["Ct4_v1"]=array("9"=>"P1", "14"=>"T1", "2"=>"d");
+$numbers["Cp4_v1"]=array("9"=>"P1", "14"=>"T1", "2"=>"d");
+$numbers["Tt4_v1"]=array("5"=>"P1", "12"=>"T1", "3"=>"d");
+$numbers["Tp4_v1"]=array("5"=>"P1", "12"=>"T1", "3"=>"d");
+$numbers["Tt1_v1"]=array("7"=>"P1", "16"=>"T1", "3"=>"d");
+$numbers["Tp3_v1"]=array("7"=>"P1", "16"=>"T1", "2"=>"d");
+$numbers["Tt2_v1"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
+$numbers["Tp2_v1"]=array("5"=>"P1", "14"=>"T1", "2"=>"d");
+$numbers["Tt3_v1"]=array("7"=>"P1", "16"=>"T1", "2"=>"d");
+$numbers["Tp1_v1"]=array("7"=>"P1", "16"=>"T1", "3"=>"d");
 
 $row = 1;
-if ((($handleInput = fopen("part1_d.csv", "r")) !== FALSE)&&(($handleOutput = fopen("comparison.csv", "w")) !== FALSE)) {
+if ((($handleInput = fopen("AllDataOnlyCompleteFormula.csv", "r")) !== FALSE)&&(($handleOutput = fopen("comparison2.csv", "w")) !== FALSE)) {
 	$titles = fgetcsv($handleInput, 541, ";"); //pop the first line (headers of columns)
 	$titles2=array("problem","answer");
 	for ($i=2;$i<count ($titles);$i++)
