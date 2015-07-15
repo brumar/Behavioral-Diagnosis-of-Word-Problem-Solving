@@ -66,7 +66,7 @@ if ((($handleInput = fopen("AllDataOnlyCompleteFormula.csv", "r")) !== FALSE)&&(
         
         // DIAGNOSE
 
-        // NB (1) : THE ABSOLUTE PRIORITY IS completeformula in $globalAnalysis, 
+        // NB (1) :sour THE ABSOLUTE PRIORITY IS completeformula in $globalAnalysis, 
         // NB (2) : In case of doubts about how to fill the values,  if not solved by reading the CSV within 2 minutes, contact me :)
         
         $elements = array('formula', 'operation','correct_computation', 'correct_identification');      
@@ -84,6 +84,7 @@ if ((($handleInput = fopen("AllDataOnlyCompleteFormula.csv", "r")) !== FALSE)&&(
          * THE ABSOLUTE PRIORITY IS completeformula in $globalAnalysis*/
         
         $problemNumbers=$numbers[$problem];
+        print($row);
         $a=new Answer($answer, $numbers[$problem],True,"french",strval($row));
         $globalAnalysis["completeformula"]=str_replace(' ', '', $a->finalFormula);
          
@@ -146,11 +147,11 @@ if ((($handleInput = fopen("AllDataOnlyCompleteFormula.csv", "r")) !== FALSE)&&(
 }
 
 // ETABLISHING SUCESS RATE 
-
+$handleOutput_errors = fopen("50Errors.csv", "w");
 $target=18;//INDEX of the target
 $success=0;
 $count=0;
-if ((($handleInput = fopen("comparison.csv", "r")) !== FALSE)) {
+if ((($handleInput = fopen("comparison2.csv", "r")) !== FALSE)) {
 	$titles = fgetcsv($handleInput, 541, ";"); //pop the first line (headers of columns)
 	while (($data = fgetcsv($handleInput, 541, ";")) !== FALSE) {
 		$t_val=$data[$target];
@@ -158,12 +159,16 @@ if ((($handleInput = fopen("comparison.csv", "r")) !== FALSE)) {
 		if($t_val==$t_adel){
  			$success++;
 		}
+		else if($count-$success<50){
+			fputcsv($handleOutput_errors,$data,";");
+		}
 		$count++;
 	}
 	$rapport=($success/$count)*100;
 	echo "success rate over the $target collumn is $rapport";
 }
-
+fclose($handleInput);
+fclose($handleOutput_errors);
 ?>
 </body>
 </html>
