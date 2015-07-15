@@ -3,11 +3,12 @@
 // Enum: type d'operations
 abstract class RegexPatterns
 {
-	const	completeOperation = "/\d+\s*[+*-\/]\s*\d+\s*=\s*\d+/"; // take all the formulas
+	const	completeOperation = "/\d+\s*[+*\-\/]\s*\d+\s*=\s*\d+/"; // take all the formulas (a+b=c)
+	const   compositeOperation="/(\d+\s*[+*\-\/]\s*\d+\s*)[+*\-\/]/"; // take all the formulas (a+b+....=c)
 	const   EndresultAfterFormulas="/[^=\d]+(\d+)*[^=\d]*$/"; // do not control for formula existence and take the last isolated number
 	const   veryLastNumberAfterEqualSign="/=\s*(\d+)[^=]*$/";
 	const   lastNumberInFormula="/=\s*(\d+)/";
-	const 	isolatedNumbersAfterFormulas="/(?:\d+\s*[+*-\/]\s*\d+\s*=\s*\d*[^\d]*)*((\d+)[^\d])+/"; //g option (multi match)
+	const 	isolatedNumbersAfterFormulas="/(?:\d+\s*[+*\-\/]\s*\d+\s*=\s*\d*[^\d]*)*((\d+)[^\d])+/"; //g option (multi match)
 	const	number = "/\d+/";
 	
 	/*
