@@ -283,13 +283,14 @@ class	Answer
 			}
 		}	
 		// last case : consider that the number after the equal is the one genuinely computed
-		// but it seems to never be usefull, which is cool
+		// This is kind of risky, but it's a rare case.
 		preg_match_all(RegexPatterns::lastNumberInFormula, $simpl_form, $n);
-		$lastNumber=$n[1];
+		$temp=end($n);
+		$lastNumber=end($temp);
 		foreach($listOfMentalCalculations as $j=>$mcal){
 			if($mcal->result==$lastNumber){
 				$this->logger->info("We drop the mental computation for the number after the equal (no better option)");
-				$this->logger->info($listOfMentalCalculations[$j]["str"]);
+				$this->logger->info($listOfMentalCalculations[$j]->str);
 				unset($listOfMentalCalculations[$j]);
 				return $listOfMentalCalculations;
 			}			
