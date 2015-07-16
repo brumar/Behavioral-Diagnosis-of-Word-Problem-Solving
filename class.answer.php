@@ -218,11 +218,10 @@ class	Answer
 					$this->logger->info("final formula is $formOb->str ");
 					$this->logger->info("then the summary formula is : $formOb->formul ");
 					$this->finalFormula=$formOb->formul;
-					$found=True;
+					return;
 				}
 			}
-			if($found==False){	
-				if(in_array($this->finalAnswer,array_keys($this->availableMentalNumbers))){
+			if(in_array($this->finalAnswer,array_keys($this->availableMentalNumbers))){
 					$formstr=$this->availableMentalNumbers[$this->finalAnswer]["str"];
 					$this->logger->info("possible mental formula found : $formstr");
 					$lastMentalCalculations=new MentalFormul($this->availableMentalNumbers[$this->finalAnswer]["str"], $this->nbs,$this->simpl_fors,$this->logger);
@@ -231,19 +230,21 @@ class	Answer
 					$this->simpl_fors_obj[]=$lastMentalCalculations;
 					$this->simpl_fors[$lastMentalCalculations->result] = $lastMentalCalculations->formul;
 				}
-				else{
-					$this->logger->info("NO FORMULA EXPLAINS THE NUMBER GIVEN AS AN ANSWER");
-					$this->ininterpretable=True;
-				}
+			else{
+				$this->logger->info("NO FORMULA EXPLAINS THE NUMBER GIVEN AS AN ANSWER");
+				$this->ininterpretable=True;
+				return;
 			}
+
 		}
-		
-		if(count($this->simpl_fors_obj)==0){
+		//if no answer explitely given ones take the last formula as referent
+		if(count($this->simpl_fors_obj)==0){ // if there is no "last formula => end
+			
 			$this->ininterpretable=True;//TODO : global status of the answer as an enum, it would allow more  precise information such as "no formula detected"
 			$this->logger->info("No formula Found");
 			return ;
 		}
-		else {//if no answer explitely given ones take the last formula as referent
+		else {
 			$lform=end($this->simpl_fors_obj);
 			$this->logger->info("final formula (by default) is $lform->str ");
 			$this->logger->info("then the summary formula is : $lform->formul ");
