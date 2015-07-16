@@ -3,6 +3,7 @@
 require_once('class.simplFormul.php');
 require_once('enums/enum.regexPatterns.php');
 require_once('class.mentalFormul.php');
+require_once('class.evalmath.php');
 require_once('logger/Logger.php');
 Logger::configure('../configLogger.xml');// Tell log4php to use our configuration file.
 
@@ -17,6 +18,7 @@ class	Answer
 	private $availableNumbers;
 	private $langage;
 	private $logger;//log the messages
+	private $eval;// php math evaluator
 	
 	private	$full_exp;
 	private $simpl_formulas;//formulas as string
@@ -36,6 +38,7 @@ class	Answer
 
 	public function	Answer($str, $nbs_problem,$verbose=False,$langage="french",$id="noID")
 	{
+		$this->eval= new EvalMath;
 		$this->logger = Logger::getLogger("main");
 		$this->availableMentalNumbers=[];
 		$this->verbose=$verbose;
@@ -57,6 +60,7 @@ class	Answer
 	 */public function process() {
 		$this->loginit ($this->id);//$id is for log only (in order to ease browsing)
 		$this->replaceElementsInAnswer();
+		$this->repairSpecialFormulas();
 		$this->updateAvailableMentalNumbers();
 		$this->findFinalAnswer();
 		$this->find_simpl_for();
@@ -164,6 +168,7 @@ class	Answer
 			$this->logger->info("number of unkwowns numbers in the formula (1 is the simplest case) ");
 			$this->logger->info($nUnkowns);
 			if($nUnkowns>1){
+				
 				$this->logger->info("we try to detect mental calculations");
 				$mentalCalculations=$this->detectMentalCalculations($simpl_form);
 				$nRealUnknowns=$nUnkowns-count($mentalCalculations);
@@ -206,11 +211,6 @@ class	Answer
 	public function	globalAnalysis()
 	{
 		// todo detect RMI here
-		if(count($this->simpl_fors_obj)==0){
-			$this->ininterpretable=True;//TODO : global status of the answer as an enum, it would allow more  precise information such as "no formula detected"
-			$this->logger->info("No formula Found");
-			return ;
-		}
 		if($this->finalAnswer!=""){
 			$found=False;
 			foreach (array_reverse($this->simpl_fors_obj) as $formOb){
@@ -221,18 +221,35 @@ class	Answer
 					$found=True;
 				}
 			}
-			if($found==False){
-				$this->logger->info("NO FORMULA EXPLAINS THE NUMBER GIVEN AS AN ANSWER");
-				$this->ininterpretable=True;
-				// TOTHINK Would it be too much charitable to test if it comes from a mental computation ?
+			if($found==False){	
+				if(in_array($this->finalAnswer,array_keys($this->availableMentalNumbers))){
+					$formstr=$this->availableMentalNumbers[$this->finalAnswer]["str"];
+					$this->logger->info("possible mental formula found : $formstr");
+					$lastMentalCalculations=new MentalFormul($this->availableMentalNumbers[$this->finalAnswer]["str"], $this->nbs,$this->simpl_fors,$this->logger);
+					$this->logger->info("mental calculation suggested : ");
+					$this->logger->info($this->availableMentalNumbers[$this->finalAnswer]["str"]);
+					$this->simpl_fors_obj[]=$lastMentalCalculations;
+					$this->simpl_fors[$lastMentalCalculations->result] = $lastMentalCalculations->formul;
+				}
+				else{
+					$this->logger->info("NO FORMULA EXPLAINS THE NUMBER GIVEN AS AN ANSWER");
+					$this->ininterpretable=True;
+				}
 			}
 		}
-		else{//if no answer explitely given ones take the last formula as referent
+		
+		if(count($this->simpl_fors_obj)==0){
+			$this->ininterpretable=True;//TODO : global status of the answer as an enum, it would allow more  precise information such as "no formula detected"
+			$this->logger->info("No formula Found");
+			return ;
+		}
+		else {//if no answer explitely given ones take the last formula as referent
 			$lform=end($this->simpl_fors_obj);
 			$this->logger->info("final formula (by default) is $lform->str ");
 			$this->logger->info("then the summary formula is : $lform->formul ");
 			$this->finalFormula=$lform->formul;
 			}
+		
 		//TODO : 
 		
 	}
@@ -294,7 +311,7 @@ class	Answer
 		}	
 	}
 	
-	public function addFormula($i,$formula){
+	public function addFormula($i,$formula){//TODO: this $i is ugly
 		$this->simpl_fors_obj[$i]=$formula;
 		$this->simpl_fors[$this->simpl_fors_obj[$i]->result] = $this->simpl_fors_obj[$i]->formul;
 		return $i;			
@@ -353,6 +370,26 @@ class	Answer
 		self::$tabReplacements['french']['CE_a_']=array('CE1');
 		self::$tabReplacements['french']['CE_b_']=array('CE2');
 	}
+	
+	public function repairSpecialFormulas(){
+		while (preg_match(RegexPatterns::compositeOperation,$this->str, $match)==1){
+			$compositeFormula=$match[1];
+			$result=strval($this->eval->evaluate($compositeFormula));
+			$replacement=$compositeFormula.'='.$result.' '.$result;//a+b+c=d => a+b=y y+c=d
+			$this->logger->info("composite formula answer  found :");
+			$this->logger->info($compositeFormula);
+			$this->str=str_replace($compositeFormula,$replacement,$this->str);
+		}
+			
+		while (preg_match(RegexPatterns::followedUpOperation,$this->str, $match)==1){
+			$compositeFormula=$match[1];
+			$result=strval($this->eval->evaluate($compositeFormula));
+			$replacement=$match[1].' '.$match[2];//a+b=c+d => a+b=y y+c=d, match[1] is a+b=y; match[2] is y
+			$this->logger->info("followedUp formula answer  found :");
+			$this->logger->info($compositeFormula);
+			$this->str=str_replace($compositeFormula,$replacement,$this->str);
+		}
+	}	
 	
 	public function replaceElementsInAnswer(){
 		$repTable=self::$tabReplacements[$this->langage];

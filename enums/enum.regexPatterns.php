@@ -3,6 +3,7 @@
 // Enum: type d'operations
 abstract class RegexPatterns
 {
+	const   followedUpOperation="/(\d+\s*[+*\-\/]\s*\d+\s*=\s*(\d+))\s*[+*\-\/]/";// take all the formulas (a+b=c+)
 	const	completeOperation = "/\d+\s*[+*\-\/]\s*\d+\s*=\s*\d+/"; // take all the formulas (a+b=c)
 	const   compositeOperation="/(\d+\s*[+*\-\/]\s*\d+\s*)[+*\-\/]/"; // take all the formulas (a+b+....=c)
 	const   EndresultAfterFormulas="/[^=\d]+(\d+)*[^=\d]*$/"; // do not control for formula existence and take the last isolated number
