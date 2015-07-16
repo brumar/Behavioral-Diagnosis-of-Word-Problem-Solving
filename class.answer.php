@@ -114,10 +114,10 @@ class	Answer
 				if(!in_array($n_plus,$alreadySeen)){
 					$availableMentalNumbers[$n_plus]["formula"]=$doublon[1].' + '.$doublon[0];
 					$availableMentalNumbers[$n_plus]["str"]=$availableMentalNumbers[$n_plus]["formula"].' = '.$n_plus;
-					$alreadySeen[]=$n_plus;
+					$alreadySeen[]=$n_plus;//TODO: Warning, this use of already seen may be problematic if various number can be accessed by mental computations
 				}
 				// TODO: check if not already computed in simple_fors
-				$n_moins=strval(intval($doublon[1])-intval($doublon[0]));
+				$n_moins=strval(intval($doublon[1])-intval($doublon[0])); //$doublon[1] always bigger because of sort
 				if(!in_array($n_moins,$alreadySeen)){
 					$availableMentalNumbers[$n_moins]["formula"]=$doublon[1].' - '.$doublon[0];
 					$availableMentalNumbers[$n_moins]["str"]=$availableMentalNumbers[$n_moins]["formula"].' = '.$n_moins;
