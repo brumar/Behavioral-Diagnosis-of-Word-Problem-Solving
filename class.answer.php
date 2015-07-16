@@ -159,7 +159,7 @@ class	Answer
 		 * Update Number list that can be reached by mental computation
 		* */
 
-		$i = 0; //TODO it's possible to get rid of $i at the condition to be careful that addFormula work well
+
 		foreach ($this->simpl_formulas as $s=>$simpl_form)
 		{
 			$formlulaIsInterpretable=True;
@@ -178,7 +178,7 @@ class	Answer
 				{
 					case 1 :
 						foreach ($mentalCalculations as $mentalCalculation){
-							$i=$this->addFormula($i,$mentalCalculation);
+							$this->addFormula($mentalCalculation);
 						}
 						break;
 						
@@ -187,7 +187,7 @@ class	Answer
 						$next_form = (isset($this->simpl_formulas[$s+1])) ? $this->simpl_formulas[$s+1] : "";
 						$mentalCalculations=$this->dropLeastProbableMentalCalculations($mentalCalculations,$simpl_form,$next_form);
 						foreach ($mentalCalculations as $mentalCalculation){
-							$i=$this->addFormula($i,$mentalCalculation);
+							$this->addFormula($mentalCalculation);
 						}
 					break;		
 					
@@ -201,7 +201,7 @@ class	Answer
 			if($formlulaIsInterpretable==True)
 			{
 				$formula=new SimplFormul($simpl_form, $nbs_problem, $this->simpl_fors,$this->logger);
-				$i=$this->addFormula($i,$formula);
+				$i=$this->addFormula($formula);
 				$this->updateAvailableNumbers();
 				$this->updateAvailableMentalNumbers();
 			}
@@ -311,10 +311,9 @@ class	Answer
 		}	
 	}
 	
-	public function addFormula($i,$formula){//TODO: this $i is ugly
-		$this->simpl_fors_obj[$i]=$formula;
-		$this->simpl_fors[$this->simpl_fors_obj[$i]->result] = $this->simpl_fors_obj[$i]->formul;
-		return $i;			
+	public function addFormula($formula){
+		$this->simpl_fors_obj[]=$formula;
+		$this->simpl_fors[$formula->result] = $formula->formul;	
 	}
 	
 	public function sortFormulas()
