@@ -14,9 +14,14 @@ class	SimplFormul
 	public $result;
 	public $formul;
 	public $logger;
+	
+	public $simplFors;
+	public $nbProblem;
 
 	public function		SimplFormul($str, $nbs_problem, $simpl_fors,$logger)
 	{
+		$this->nbProblem=$nbs_problem;
+		$this->simplFors=$simpl_fors;// TODO: Now stored in the class, an extra work is necessary to get rid of these arguments in functions
 		$this->logger=$logger;
 		$this->str = $str;
 		$this->logger->info("more precise investigation of the formula $str");
@@ -80,12 +85,12 @@ class	SimplFormul
 		$this->logger->info($this->formul);
 	}
 
-	private function	historyOf($nb,$nbs_problem, $simpl_fors)
+	private function	historyOf($nb)
 	{
-		if (array_key_exists($nb, $nbs_problem) !== FALSE) 
-			return $nb;
+		if (array_key_exists($nb, $this->nbProblem)) 
+			return $this->nbProblem[$nb];
 		else 
-			return "(" . $simpl_fors[$nb] . ")";
+			return "(" . $this->simplFors[$nb] . ")";
 	}
 	// Outputs:
 	// - resolution type as in enum Type_d_Resolution
@@ -109,8 +114,8 @@ class	SimplFormul
 		{
 			$this->resol_typ = Type_de_Resolution::substraction_inverse;
 			$this->result = $this->nbs[2];
-			$this->formul = $nbs_problem[$this->nbs[1]] . $this->formul;
-			$this->formul .= $nbs_problem[$this->nbs[0]];
+			$this->formul = $this->historyOf($this->nbs[1]) . $this->formul;
+			$this->formul .= $this->historyOf($this->nbs[0]);
 		}
 		// Reste
 		else if ($is_nb0 !== FALSE)
@@ -119,8 +124,8 @@ class	SimplFormul
 			{
 				$this->resol_typ = Type_de_Resolution::simple_operation;
 				$this->result = $this->nbs[2];
-				$this->formul = $this->historyOf($nbs_problem[$this->nbs[0]]) . $this->formul;
-				$this->formul .= $this->historyOf($nbs_problem[$this->nbs[1]]);
+				$this->formul = $this->historyOf($this->nbs[0]) . $this->formul;
+				$this->formul .= $this->historyOf($this->nbs[1]);
 
 			}
 			else
@@ -131,14 +136,14 @@ class	SimplFormul
 				{
 					$this->op_typ = Type_d_Operation::substraction;
 					$this->resol_typ = Type_de_Resolution::addition_a_trou;
-					$this->formul = $this->historyOf($nbs_problem[$this->nbs[2]]) . ' - ';
-					$this->formul .= $this->historyOf($nbs_problem[$this->nbs[0]]);
+					$this->formul = $this->historyOf($this->nbs[2]) . ' - ';
+					$this->formul .= $this->historyOf($this->nbs[0]);
 				}
 				else	// soustraction a trou standard
 				{
 				$this->resol_typ = Type_de_Resolution::operation_a_trou;
-				$this->formul = $this->historyOf($nbs_problem[$this->nbs[0]]) . $this->formul;
-				$this->formul .= $this->historyOf($nbs_problem[$this->nbs[2]]);
+				$this->formul = $this->historyOf($this->nbs[0]) . $this->formul;
+				$this->formul .= $this->historyOf($this->nbs[2]);
 				}
 			}
 		}
@@ -152,16 +157,16 @@ class	SimplFormul
 				{
 					$this->op_typ = Type_d_Operation::addition;
 					$this->resol_typ = Type_de_Resolution::substraction_a_trou;
-					$this->formul = $this->historyOf($nbs_problem[$this->nbs[2]]) . " + ";
-					$this->formul .= $this->historyOf($nbs_problem[$this->nbs[1]]);
+					$this->formul = $this->historyOf($this->nbs[2]) . " + ";
+					$this->formul .= $this->historyOf($this->nbs[1]);
 				}
 				// Test de la soustraction par l'addition a trou
 				else if ($this->op_typ === Type_d_Operation::addition)
 				{
 					$this->op_typ = Type_d_Operation::substraction;
 					$this->resol_typ = Type_de_Resolution::addition_a_trou;
-					$this->formul = $this->historyOf($nbs_problem[$this->nbs[2]]) . " - ";
-					$this->formul .= $this->historyOf($nbs_problem[$this->nbs[1]]);
+					$this->formul = $this->historyOf($this->nbs[2]) . " - ";
+					$this->formul .= $this->historyOf($this->nbs[1]);
 				}
 			}
 			else
