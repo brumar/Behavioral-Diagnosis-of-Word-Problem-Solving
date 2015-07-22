@@ -10,9 +10,9 @@ Logger::configure('../configLogger.xml');// Tell log4php to use our configuratio
 
 class	Answer
 {
-	private	$strbrut;//text brut
-	private	$str; // text after some replacements
-	private	$nbs;//associative array "23"=>"N1"
+	private	$strbrut;//text brut 
+	private	$str; // text after some replacements --réponse réparée
+	private	$nbs;//associative array "23"=>"N1" 
 	private $numbersInProblem;//"23", etc...
 	private $availableMentalNumbers;// numbers that can be computed by a mental operation
 	private $availableNumbers;
@@ -22,15 +22,16 @@ class	Answer
 	
 	private	$full_exp;
 	private $simpl_formulas;//formulas as string
+	private $formulaCount;// count the number of detected formulas --Nombre de formules
 	private $simpl_fors; // bind computed numbers to their formula
-	private	$simpl_fors_obj; //formulas as object
+	public	$simpl_fors_obj; //formulas as object
 	private	$lastFormula; //the formula as object that compute the answer
-	private	$interp; //Boolean indicating if the answer as a whole is interpretable
 	private $verbose; //string indicating if verbal report or not (to debug)
 	private $finalAnswer="";//final answer given by the subject
 	public $finalFormula="";//final formula representing the whole solving process
 	private $id;
-	private $ininterpretable=False;
+	private $ininterpretable=False; // boolean indicated if the answer is ininterpretaable --interprétable?
+	private $voidAnswer=False;
 	
 	static $tabReplacements;
 	
@@ -42,7 +43,6 @@ class	Answer
 		$this->logger = Logger::getLogger("main");
 		$this->availableMentalNumbers=[];
 		$this->verbose=$verbose;
-		$this->interpretable=True;
 		$this->strbrut = $str;
 		$this->nbs=$nbs_problem;
 		$this->numbersInProblem=array_keys($this->nbs);
@@ -52,7 +52,7 @@ class	Answer
 		$this->id=$id;
 		
 		$this->langage=$langage; //TODO an enum would be better
-		$this->process ();// TODO should be commented out one day
+		$this->process();// TODO should be commented out one day
 
 	}
 	/**
@@ -96,7 +96,21 @@ class	Answer
 		* */
 		$this->availableNumbers=array_merge($this->availableNumbers,array_keys($this->simpl_fors));//TODO
 	}
-	
+	/*
+	public function forcedValidationForObviousOneStepMentalComputation(){
+		// ad'hoc method created to avoid the complexity to compare 
+		// results from manual coding dued to its inconsistency
+		if((count($this->simpl_fors_obj)==1)&&($this->simpl_fors_obj[0]->resol_typ==Type_de_Resolution::operation_mentale)){
+			if(preg_match_all(RegexPatterns::number,$this->str, $ar_temp, PREG_SET_ORDER)==1){
+				$this->logger->info("this formula is an obvious case of mental computation");
+				return True;
+			}
+		
+		}
+		return False;
+		
+	}
+	*/
 	public function updateAvailableMentalNumbers(){
 		/*  
 		 * Update Number list that can be reached by mental computation
@@ -147,7 +161,6 @@ class	Answer
 		}
 		$this->logger->info("formulas detected : ");
 		$this->logger->info($this->simpl_formulas);
-		
 	}
 
 	// Analyses a simple arithmetic problem answer.
