@@ -11,7 +11,7 @@ class	SimplFormul
 	public	$resol_typ;//--Forme
 	public	$miscalc;//--Erreurs de calcul
 
-	public $result;//--RÃ©sultat
+	public $result;//--Résultat
 	public $formul;//--Symbolique
 	public $logger;
 	
@@ -27,6 +27,7 @@ class	SimplFormul
 		$this->logger->info("more precise investigation of the formula $str");
 		$this->findNumbers();
 		$this->find_op_typ();
+		$this->repairSign();
 		$this->find_resol_typ($nbs_problem, $simpl_fors);
 		$this->find_miscalc();
 		$this->logSummary();
@@ -83,6 +84,22 @@ class	SimplFormul
 		}
 		$this->logger->info("signe de l'opération : ");
 		$this->logger->info($this->formul);
+	}
+
+	private function	repairSign() //in case of formulas like 6-4=10 or 6+4=2 
+	{
+		if (($this->formul == " + ")&&(abs($this->nbs[0]-$this->nbs[1])==$this->nbs[2]))
+		{
+			$this->formul = " - ";
+			$this->op_typ = Type_d_Operation::substraction;
+			$this->logger->info("we reverted the sign of the operation");
+		}
+			if (($this->formul == " - ")&&($this->nbs[0]+$this->nbs[1])==$this->nbs[2])
+		{
+			$this->formul = " + ";
+			$this->op_typ = Type_d_Operation::addition;
+			$this->logger->info("we reverted the sign of the operation");
+		}
 	}
 
 	private function	historyOf($nb)
