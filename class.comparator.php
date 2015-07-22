@@ -7,9 +7,11 @@ class	Comparator
 	public	$evaluator;
 	public	$s1;
 	public	$s2;
+	public $logger;
 
-	public function		Comparator($symbols,$s1,$s2) //TODO: Would better without s1 and s2 as argument for constructor
+	public function		Comparator($symbols,$s1,$s2,$logger) //TODO: Would better without s1 and s2 as argument for constructor
 	{
+		$this->logger=$logger;
 		$this->symbols=$symbols;
 		$this->evaluator=new EvalMath;
 		$t1=explode(" ", $s1);
@@ -17,6 +19,12 @@ class	Comparator
 		$t2=explode(" ", $s2);
 		$this->s2=end($t2);
 		$this->replaceAsStrMin();
+		$this->getRidOfspaces();
+	}
+	
+	public function getRidOfspaces(){
+		$this->s1=preg_replace('/\s+/', '',$this->s1);
+		$this->s2=preg_replace('/\s+/', '',$this->s2);
 	}
 	
 	public function compareExpressions(){
@@ -30,10 +38,15 @@ class	Comparator
 	}
 	
 	public function compareExpressionValue(){
+		try {
 		$this->evaluator->evaluate('f(t1,p1,d)='.$this->s1);
 		$this->evaluator->evaluate('g(t1,p1,d)='.$this->s2);
 		$res1 = $this->evaluator->evaluate('f(16,4,1)');
 		$res2 = $this->evaluator->evaluate('g(16,4,1)');
+		} catch (Exception $e) {
+			echo('mathEval failed to compare '.$this->s1.' with '.$this->s2);
+			return False;
+		}
 		return ($res1==$res2);
 	}
 	
