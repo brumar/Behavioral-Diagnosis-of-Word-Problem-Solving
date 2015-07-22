@@ -5,14 +5,14 @@ require_once('enums/enum.type_de_resolution.php');
 
 class	SimplFormul
 {
-	public	$str;
+	public	$str;//--Brut
 	public	$nbs;
-	public	$op_typ;
-	public	$resol_typ;
-	public	$miscalc;
+	public	$op_typ;//--Type
+	public	$resol_typ;//--Forme
+	public	$miscalc;//--Erreurs de calcul
 
-	public $result;
-	public $formul;
+	public $result;//--Résultat
+	public $formul;//--Symbolique
 	public $logger;
 	
 	public $simplFors;
