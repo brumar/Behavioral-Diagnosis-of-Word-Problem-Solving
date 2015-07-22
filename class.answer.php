@@ -29,6 +29,7 @@ class	Answer
 	private $verbose; //string indicating if verbal report or not (to debug)
 	private $finalAnswer="";//final answer given by the subject
 	public $finalFormula="";//final formula representing the whole solving process
+	private $reverseIndexLastFormula; //reversed index of the formula giving the result --indexFormuleFinale
 	private $id;
 	private $ininterpretable=False; // boolean indicated if the answer is ininterpretaable --interprétable?
 	private $voidAnswer=False;
@@ -161,6 +162,7 @@ class	Answer
 		}
 		$this->logger->info("formulas detected : ");
 		$this->logger->info($this->simpl_formulas);
+		$this->formulaCount=count($this->simpl_formulas);
 	}
 
 	// Analyses a simple arithmetic problem answer.
@@ -226,11 +228,12 @@ class	Answer
 		// todo detect RMI here
 		if($this->finalAnswer!=""){
 			$found=False;
-			foreach (array_reverse($this->simpl_fors_obj) as $formOb){
+			foreach (array_reverse($this->simpl_fors_obj) as $index=>$formOb){
 				if ($formOb->result==$this->finalAnswer){
 					$this->logger->info("final formula is $formOb->str ");
 					$this->logger->info("then the summary formula is : $formOb->formul ");
 					$this->finalFormula=$formOb->formul;
+					$this->reverseIndexLastFormula=$index;
 					return;
 				}
 			}
@@ -262,6 +265,7 @@ class	Answer
 			$this->logger->info("final formula (by default) is $lform->str ");
 			$this->logger->info("then the summary formula is : $lform->formul ");
 			$this->finalFormula=$lform->formul;
+			$this->reverseIndexLastFormula=1;
 			}
 		
 		//TODO : 
@@ -386,6 +390,20 @@ class	Answer
 	}
 	
 	public function repairSpecialFormulas(){
+		
+		preg_match_all(RegexPatterns::separatedFormula,$this->str, $matches,PREG_SET_ORDER);
+		foreach($matches as $match){
+			$uncompleteFormula=$match[1];
+			$separatedNumber=$match[2];
+			$result=strval(abs($this->eval->evaluate($uncompleteFormula)));
+			if($result==$separatedNumber){
+				$replacement=$uncompleteFormula.'='.$result;//a+b+c=d => a+b=y y+c=d
+				$this->logger->info("uncomplete formula answer  found :");
+				$this->logger->info($uncompleteFormula);
+				$this->str=str_replace($uncompleteFormula,$replacement,$this->str);
+		}
+		}
+		
 		while (preg_match(RegexPatterns::compositeOperation,$this->str, $match)==1){
 			$compositeFormula=$match[1];
 			$result=strval($this->eval->evaluate($compositeFormula));
