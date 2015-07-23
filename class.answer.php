@@ -125,20 +125,35 @@ class	Answer
 		foreach($doublons as $doublon){
 			sort($doublon);
 			if($doublon[0]!=$doublon[1]){ // 42-42 and 42+42 are avoided
-				$n_plus=strval(intval($doublon[1])+intval($doublon[0]));
-				if(!in_array($n_plus,$alreadySeen)){
-					$availableMentalNumbers[$n_plus]["formula"]=$doublon[1].' + '.$doublon[0];
-					$availableMentalNumbers[$n_plus]["str"]=$availableMentalNumbers[$n_plus]["formula"].' = '.$n_plus;
-					$alreadySeen[]=$n_plus;//TODO: Warning, this use of already seen may be problematic if various number can be accessed by mental computations
-				}
-				// TODO: check if not already computed in simple_fors
 				$n_moins=strval(intval($doublon[1])-intval($doublon[0])); //$doublon[1] always bigger because of sort
-				if(!in_array($n_moins,$alreadySeen)){
-					$availableMentalNumbers[$n_moins]["formula"]=$doublon[1].' - '.$doublon[0];
-					$availableMentalNumbers[$n_moins]["str"]=$availableMentalNumbers[$n_moins]["formula"].' = '.$n_moins;
-					$alreadySeen[]=$n_moins;
+				$n_plus=strval(intval($doublon[1])+intval($doublon[0]));
+				$blocPlus=["formula"=>$doublon[1].' + '.$doublon[0],"str"=>$doublon[1].' + '.$doublon[0].' = '.$n_plus];
+				$blocMoins=["formula"=>$doublon[1].' - '.$doublon[0],"str"=>$doublon[1].' - '.$doublon[0].' = '.$n_moins];
+				$alreadyAdded=False;
+				if(in_array($n_plus,array_keys($availableMentalNumbers))){
+					foreach($availableMentalNumbers[$n_plus] as $bloc){
+						if(serialize($bloc)==serialize($blocPlus)){
+							$alreadyAdded=True;
+							break;
+						}
+						
+					}
 				}
-				
+					if($alreadyAdded==False){
+						$availableMentalNumbers[$n_plus][]=$blocPlus;			
+					}				
+				$alreadyAdded=False;
+				if(in_array($n_moins,array_keys($availableMentalNumbers))){
+					foreach($availableMentalNumbers[$n_moins] as $bloc){
+						if(serialize($bloc)==serialize($blocMoins)){
+							$alreadyAdded=True;
+							break;
+						}	
+					}
+				}
+					if($alreadyAdded==False){
+						$availableMentalNumbers[$n_moins][]=$blocMoins;			
+					}	
 			}
 		}
 		$this->logger->info("availableMentalNumbers :");
@@ -182,10 +197,10 @@ class	Answer
 			$this->logger->info("analyse of this formula : $simpl_form");
 			$this->logger->info("number of unkwowns numbers in the formula (1 is the simplest case) ");
 			$this->logger->info($nUnkowns);
-			if($nUnkowns>1){
-				
+			if($nUnkowns>1){				
 				$this->logger->info("we try to detect mental calculations");
-				$mentalCalculations=$this->detectMentalCalculations($simpl_form);
+				$mentalCalculations=$this->detectMentalCalculations($simpl_form);//
+				$mentalCalculations=$this->reduceMentalCalculations($mentalCalculations);
 				$nRealUnknowns=$nUnkowns-count($mentalCalculations);
 				$this->logger->info("After the mental computation investigation, we count the number of remaining unkwowns (1 is the simplest case) ");
 				$this->logger->info($nRealUnknowns);
@@ -215,12 +230,27 @@ class	Answer
 			}
 			if($formlulaIsInterpretable==True)
 			{
-				$formula=new SimplFormul($simpl_form, $nbs_problem, $this->simpl_fors,$this->logger);
-				$i=$this->addFormula($formula);
+				$formula=new SimplFormul($simpl_form, $nbs_problem, $this->simpl_fors,$this->logger,$this->policy,$this->lastElementComputed,$this->lastElementAfterEqualSign);
+				$i=$this->addFormula($formula);	
 				$this->updateAvailableNumbers();
 				$this->updateAvailableMentalNumbers();
 			}
 		}
+	}
+	
+	public function reduceMentalCalculations($mentalCalculations){
+		//TODO: should use policy
+		//should compute score with that
+		//should raise warning
+		try{
+			$flatListOfMentalComp=[];
+			foreach($mentalCalculations as $listOfMentalCalculation){
+				$flatListOfMentalComp[]=$listOfMentalCalculation[0];
+			}
+		}catch (Exception $e) {
+			echo 'Exception re�ue : ',  $e->getMessage(), "\n";
+		}
+		return $flatListOfMentalComp;	
 	}
 	
 	public function	globalAnalysis()
@@ -352,12 +382,19 @@ class	Answer
 		$numbersInFormula=$nbs[0];
 		$mentalCalculations=[];
 		foreach($numbersInFormula as $n){
-			if(in_array($n,array_keys($this->availableMentalNumbers))){
-				$formstr=$this->availableMentalNumbers[$n]["str"];
-				$this->logger->info("possible mental formula found : $formstr");
-				$mentalCalculations[]=new MentalFormul($this->availableMentalNumbers[$n]["str"], $this->nbs,$this->simpl_fors,$this->logger);
-				$this->logger->info("mental calculation suggested : ");
-				$this->logger->info($this->availableMentalNumbers[$n]["str"]);
+			if(!in_array($n,$this->availableNumbers)){
+				if(in_array($n,array_keys($this->availableMentalNumbers))){
+					$mentalCalculations[$n]=[];
+					foreach($this->availableMentalNumbers[$n] as $possibleMentalCalculation){
+						$formstr=$possibleMentalCalculation["str"];
+						$this->logger->info("possible mental formula found : $formstr");
+						$nm=new MentalFormul($possibleMentalCalculation["str"], $this->nbs,$this->simpl_fors,$this->logger,$this->policy,$this->lastElementComputed,$this->lastElementAfterEqualSign);
+						$u=array_diff($numbersInFormula, $nm->nbs);
+							$mentalCalculations[$n][]=$nm; 
+							$this->logger->info("mental calculation suggested : ");
+							$this->logger->info($possibleMentalCalculation["str"]);
+					}
+				}
 			}
 		}
 		return $mentalCalculations;
