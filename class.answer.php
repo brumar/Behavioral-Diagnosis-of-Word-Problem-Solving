@@ -2,6 +2,7 @@
 
 require_once('class.simplFormul.php');
 require_once('enums/enum.regexPatterns.php');
+require_once('enums/enum.decision_policy.php');//name : DecPol
 require_once('class.mentalFormul.php');
 require_once('class.evalmath.php');
 require_once('logger/Logger.php');
@@ -10,6 +11,12 @@ Logger::configure('../configLogger.xml');// Tell log4php to use our configuratio
 
 class	Answer
 {
+	public $policy;//indicates who numbers are infered where they come from
+	//3 fields added to support policy mecanisms
+	public $lastElementAfterEqualSign;
+	public $lastElementComputed;
+	//public $computedNumbers; not necessary as its the diff of numbers in pbm and $availableNumbers
+	
 	private	$strbrut;//text brut 
 	private	$str; // text after some replacements --réponse réparée
 	private	$nbs;//associative array "23"=>"N1" 
@@ -34,11 +41,15 @@ class	Answer
 	private $ininterpretable=False; // boolean indicated if the answer is ininterpretaable --interprétable?
 	private $voidAnswer=False;
 	
+
+	
 	static $tabReplacements;
 	
 
 
-	public function	Answer($str, $nbs_problem,$verbose=False,$langage="french",$id="noID")
+	public function	Answer($str, $nbs_problem,$verbose=False,$langage="french",$id="noID",
+			$policy=[DecPol::lastComputed,DecPol::afterEqual,DecPol::computed,DecPol::problem])
+	//priorityList=["LastComputed","afterEqual","computed,"problem"]
 	{
 		$this->eval= new EvalMath;
 		$this->logger = Logger::getLogger("main");
@@ -51,6 +62,7 @@ class	Answer
 		$this->simpl_fors = [];
 		$this->simpl_fors_obj=[];
 		$this->id=$id;
+		$this->policy=$policy;
 		
 		$this->langage=$langage; //TODO an enum would be better
 		$this->process();// TODO should be commented out one day
@@ -248,7 +260,7 @@ class	Answer
 				$flatListOfMentalComp[]=$listOfMentalCalculation[0];
 			}
 		}catch (Exception $e) {
-			echo 'Exception reï¿½ue : ',  $e->getMessage(), "\n";
+			echo 'Exception reçue : ',  $e->getMessage(), "\n";
 		}
 		return $flatListOfMentalComp;	
 	}
@@ -268,11 +280,12 @@ class	Answer
 				}
 			}
 			if(in_array($this->finalAnswer,array_keys($this->availableMentalNumbers))){
-					$formstr=$this->availableMentalNumbers[$this->finalAnswer]["str"];
+					$lastMentalComputation=$this->availableMentalNumbers[$this->finalAnswer][0];//temp
+					$formstr=$lastMentalComputation["str"];
 					$this->logger->info("possible mental formula found : $formstr");
-					$lastMentalCalculations=new MentalFormul($this->availableMentalNumbers[$this->finalAnswer]["str"], $this->nbs,$this->simpl_fors,$this->logger);
+					$lastMentalCalculations=new MentalFormul($lastMentalComputation["str"], $this->nbs,$this->simpl_fors,$this->logger,$this->policy,$this->lastElementComputed,$this->lastElementAfterEqualSign);
 					$this->logger->info("mental calculation suggested : ");
-					$this->logger->info($this->availableMentalNumbers[$this->finalAnswer]["str"]);
+					$this->logger->info($lastMentalComputation["str"]);
 					$this->simpl_fors_obj[]=$lastMentalCalculations;
 					$this->simpl_fors[$lastMentalCalculations->result] = $lastMentalCalculations->formul;
 				}
@@ -363,6 +376,13 @@ class	Answer
 	public function addFormula($formula){
 		$this->simpl_fors_obj[]=$formula;
 		$this->simpl_fors[$formula->result] = $formula->formul;	
+		$this->lastElementComputed=$formula->result;
+		if($formula->resol_typ!=Type_de_Resolution::operation_mentale){
+			$this->lastElementAfterEqualSign=$formula->nbs[2];
+		}
+		else{
+			$this->lastElementAfterEqualSign="";
+		}
 	}
 	
 	public function sortFormulas()
@@ -424,6 +444,7 @@ class	Answer
 		self::$tabReplacements['french']['CM_b_']=array('CM2');
 		self::$tabReplacements['french']['CE_a_']=array('CE1');
 		self::$tabReplacements['french']['CE_b_']=array('CE2');
+		self::$tabReplacements['french']['ensemble']=array('les deux','les 2');
 	}
 	
 	public function repairSpecialFormulas(){
@@ -438,7 +459,7 @@ class	Answer
 				$this->logger->info("uncomplete formula answer  found :");
 				$this->logger->info($uncompleteFormula);
 				$this->str=str_replace($uncompleteFormula,$replacement,$this->str);
-		}
+			}
 		}
 		
 		while (preg_match(RegexPatterns::compositeOperation,$this->str, $match)==1){

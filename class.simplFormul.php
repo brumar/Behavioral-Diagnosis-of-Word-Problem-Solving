@@ -2,9 +2,11 @@
 
 require_once('enums/enum.type_d_operation.php');
 require_once('enums/enum.type_de_resolution.php');
+require_once('enums/enum.decision_policy.php');//name : DecPol
 
 class	SimplFormul
 {
+	public  $policy;
 	public	$str;//--Brut
 	public	$nbs;
 	public	$op_typ;//--Type
@@ -18,8 +20,14 @@ class	SimplFormul
 	public $simplFors;
 	public $nbProblem;
 
-	public function		SimplFormul($str, $nbs_problem, $simpl_fors,$logger)
+	public $lastElementAfterEqualSign;
+	public $lastElementComputed;
+
+	public function		SimplFormul($str, $nbs_problem, $simpl_fors,$logger,$pol,$lastElementComputed="",$lastElementAfterEqualSign="")
 	{
+		$this->policy=$pol;
+		$this->lastElementComputed=$lastElementComputed;
+		$this->lastElementAfterEqualSign=$lastElementAfterEqualSign;
 		$this->nbProblem=$nbs_problem;
 		$this->simplFors=$simpl_fors;// TODO: Now stored in the class, an extra work is necessary to get rid of these arguments in functions
 		$this->logger=$logger;
@@ -102,12 +110,70 @@ class	SimplFormul
 		}
 	}
 
-	private function	historyOf($nb)
+	private function	historyOf($nb) //nb is under its numeric form and is turned into its symbolic form like T1, P1, P1-d etc....
 	{
-		if (array_key_exists($nb, $this->nbProblem)) 
+		//$policy=[DecPol::lastComputed,DecPol::afterEqual,DecPol::computed,DecPol::problem]
+		$solutions=[];
+		foreach($this->policy as $option){
+			$solution=$this->callHistoryOf($nb,$option);
+			if($solution!=""){
+				$solutions[$option]=$solution;
+			}
+		}
+		//now handle the case where multiple solutions are possible => raise warning
+		return array_values($solutions)[0];
+	}
+	
+	private function callHistoryOf($nb,$option){
+		switch($option){
+			case DecPol::afterEqual:
+				if($nb==$this->lastElementAfterEqualSign){
+					if(in_array($nb,array_keys($this->simplFors))){
+						return "(" . $this->simplFors[$nb] . ")";
+					}
+					else{
+						return "rmi";//TODO: à faire
+					}
+				}
+				else{
+					return "";
+				}
+				break;
+			
+			case DecPol::computed:
+				if(in_array($nb,array_keys($this->simplFors))){
+					return "(" . $this->simplFors[$nb] . ")";
+				}
+				else{
+					return "";
+				}
+				break;
+					
+			case DecPol::lastComputed:
+				if($nb==$this->lastElementComputed){
+					return "(" . $this->simplFors[$nb] . ")";
+				}
+				else{
+					return "";
+				}
+				break;
+						
+			case DecPol::problem:
+				if (array_key_exists($nb, $this->nbProblem)){
+					return $this->nbProblem[$nb];
+				}
+				else {
+					return "";
+				}
+				break;
+							
+			default:
+				return "";
+		}
+		/*if (array_key_exists($nb, $this->nbProblem))
 			return $this->nbProblem[$nb];
-		else 
-			return "(" . $this->simplFors[$nb] . ")";
+		else
+			return "(" . $this->simplFors[$nb] . ")";*/
 	}
 	// Outputs:
 	// - resolution type as in enum Type_d_Resolution
@@ -190,6 +256,7 @@ class	SimplFormul
 			{
 				$this->resol_typ = Type_de_Resolution::uninterpretable;
 				$this->result = $this->nbs[2];
+
 			}
 		}
 	}
