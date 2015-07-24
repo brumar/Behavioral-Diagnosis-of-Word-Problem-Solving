@@ -25,7 +25,7 @@ class	Answer
 	private	$nbs;//associative array "23"=>"N1" 
 	private $numbersInProblem;//"23", etc...
 	private $availableMentalNumbers;// numbers that can be computed by a mental operation
-	private $availableNumbers;
+	public $availableNumbers;
 	private $langage;
 	private $logger;//log the messages
 	private $eval;// php math evaluator
@@ -77,7 +77,8 @@ class	Answer
 	}
 	/**
 	 * 
-	 */public function process() {
+	 */
+	 public function process() {
 		$this->loginit ($this->id);//$id is for log only (in order to ease browsing)
 		$this->replaceElementsInAnswer();
 		$this->repairSpecialFormulas();
@@ -251,7 +252,7 @@ class	Answer
 			}
 			if($formlulaIsInterpretable==True)
 			{
-				$formula=new SimplFormul($simpl_form, $nbs_problem, $this->simpl_fors,$this->logger,$this->policy,$this->lastElementComputed,$this->lastElementAfterEqualSign);
+				$formula=new SimplFormul($simpl_form, $nbs_problem, $this->simpl_fors,$this->logger,$this->policy,$this->lastElementComputed,$this->lastElementAfterEqualSign,$this->currentLastFormObj);
 				$i=$this->addFormula($formula);	
 				$this->updateAvailableNumbers();
 				$this->updateAvailableMentalNumbers();
@@ -262,16 +263,55 @@ class	Answer
 	public function reduceMentalCalculations($mentalCalculations){
 		//TODO: should use policy
 		//should compute score with that
-		//should raise warning
-		try{
-			$flatListOfMentalComp=[];
-			foreach($mentalCalculations as $listOfMentalCalculation){
-				$flatListOfMentalComp[]=$listOfMentalCalculation[0];
+		//should raise warning if more than 1 mental calculation possible=>put in formulas
+
+		$flatListOfMentalComp=[];
+		
+		foreach($mentalCalculations as $listOfMentalCalculation){
+			$remainingMentalComputation=$this->reduceParticularMentalComp($listOfMentalCalculation);
+			if(!empty($remainingMentalComputation)){
+				$flatListOfMentalComp[]=$remainingMentalComputation;
 			}
-		}catch (Exception $e) {
-			echo 'Exception reçue : ',  $e->getMessage(), "\n";
 		}
-		return $flatListOfMentalComp;	
+	return $flatListOfMentalComp;	
+	}
+	
+	public function reduceParticularMentalComp($listOfMentalCalculation){
+		$scores=[];
+		if(count($listOfMentalCalculation)>1){
+			$message="various mental computation are possible to explain a number";
+			$this->anomalyManager->addAnomaly($message);
+			$this->logger->info($message);
+			$this->logger->info("we try to find the most obvious one");
+			foreach($listOfMentalCalculation as $ind=>$mentalCalc){
+				$scores[$ind]=$mentalCalc->computeReliabilityScore();
+			}
+			$max=0;
+			$selected=0;
+			$equalityWarning=False;
+			foreach ($scores as $ind2=>$score){
+				if($score==$max){
+					$equalityWarning=True;
+				}
+				if($score>$max){
+					$equalityWarning=False;
+					$max=$score;
+					$selected=$ind2;
+				}
+			}
+			if($equalityWarning){
+				$this->logger->info("scores for each formula are equal, we abandon the process");
+				$flatListOfMentalComp=[];
+				$this->anomalyManager->addAnomaly("scoring comparison in reduceParticularMentalComp has failed");
+			}
+			else{
+				$selectedMental=$listOfMentalCalculation[$selected];
+				return $selectedMental;
+			}
+		}
+		else{
+			return $listOfMentalCalculation[0];
+		}
 	}
 	
 	public function	globalAnalysis()
@@ -289,14 +329,17 @@ class	Answer
 				}
 			}
 			if(in_array($this->finalAnswer,array_keys($this->availableMentalNumbers))){
-					$lastMentalComputation=$this->availableMentalNumbers[$this->finalAnswer][0];//temp
-					$formstr=$lastMentalComputation["str"];
-					$this->logger->info("possible mental formula found : $formstr");
-					$lastMentalCalculations=new MentalFormul($lastMentalComputation["str"], $this->nbs,$this->simpl_fors,$this->logger,$this->policy,$this->lastElementComputed,$this->lastElementAfterEqualSign);
-					$this->logger->info("mental calculation suggested : ");
-					$this->logger->info($lastMentalComputation["str"]);
-					$this->simpl_fors_obj[]=$lastMentalCalculations;
-					$this->simpl_fors[$lastMentalCalculations->result] = $lastMentalCalculations->formul;
+					$mentals=$this->detectMentalCalculations(strval($this->finalAnswer),"disambFinalAnswer");//trick to reuse function
+					$mental=$this->reduceMentalCalculations($mentals);
+					if(!empty($mental)){
+						$mentalFinal=$mental[0];//by construction we know that a single mentalCalculation is there
+						$this->simpl_fors_obj[]=$mentalFinal;
+						$this->simpl_fors[$mentalFinal->result] = $mentalFinal->formul;
+						$this->logger->info("possible mental formula found to explain final result:  $mentalFinal->formul");
+					}
+					else{
+						$this->logger->info("We could not take a mental formula explaining results, probably because we could not select the best among various possibilities");
+					}
 				}
 			else{
 				$this->logger->info("NO FORMULA EXPLAINS THE NUMBER GIVEN AS AN ANSWER");
@@ -369,8 +412,6 @@ class	Answer
 		$this->logger->error("no mental computation has been droped, this is unexpected");
 	}
 	
-
-
 
 	public function findFinalAnswer(){
 		if(preg_match(RegexPatterns::EndresultAfterFormulas,$this->str, $match)==1){
