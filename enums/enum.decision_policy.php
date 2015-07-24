@@ -11,6 +11,10 @@ abstract class DecPol
 	const  afterEqual=1;
 	const  computed=2;
 	const  problem=3;
+
+	//TODO: Maybe we could use item like unusedNumberInProblem or unusedcalculatedNumber to favor solution path where number
+	//because are more likely to be used that their counterparts.
+	// but it's kind of tricky, do we really want the automatic coding to take into account this kind of subtleties ?
 }	
 
 ?>
