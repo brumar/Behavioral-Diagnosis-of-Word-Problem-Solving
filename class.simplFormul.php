@@ -6,7 +6,9 @@ require_once('enums/enum.decision_policy.php');//name : DecPol
 
 class	SimplFormul
 {
+	public  $lastForm;
 	public  $policy;
+	public  $rmi;
 	public	$str;//--Brut
 	public	$nbs;
 	public	$op_typ;//--Type
@@ -22,9 +24,13 @@ class	SimplFormul
 
 	public $lastElementAfterEqualSign;
 	public $lastElementComputed;
+	public $numberReliabilityScore=[];
+	public $possibleAnomalies=[];
 
-	public function		SimplFormul($str, $nbs_problem, $simpl_fors,$logger,$pol,$lastElementComputed="",$lastElementAfterEqualSign="")
+	public function		SimplFormul($str, $nbs_problem, $simpl_fors,$logger,$pol,$lastElementComputed="",$lastElementAfterEqualSign="",$lastForm)
 	{
+		$this->lastForm=$lastForm;
+		$this->rmi=False;
 		$this->policy=$pol;
 		$this->lastElementComputed=$lastElementComputed;
 		$this->lastElementAfterEqualSign=$lastElementAfterEqualSign;
@@ -120,19 +126,45 @@ class	SimplFormul
 				$solutions[$option]=$solution;
 			}
 		}
+		$this->checkForDoubts(array_keys($solutions));
 		//now handle the case where multiple solutions are possible => raise warning
-		return array_values($solutions)[0];
+		$finalVal=array_values($solutions)[0];
+		$optionSelected=array_search($finalVal,$solutions);
+		$policyRank=count($this->policy)-array_search($optionSelected, $this->policy);
+		$this->numberReliabilityScore[$nb]=$policyRank;
+		return $finalVal;
+		//$lastForm
+	}
+	
+	private function checkForDoubts($solutions){
+		if(in_array(DecPol::afterEqual, $solutions)&&(!in_array(DecPol::computed, $solutions))){
+			$this->possibleAnomalies[]="warning : number after equal and not computed";
+			//TODO: Turn this into enum whenever possible
+		}
+		if(in_array(DecPol::afterEqual, $solutions)&&(!in_array(DecPol::computed, $solutions))&&(!in_array(DecPol::afterEqual, $solutions))){
+			$this->possibleAnomalies[]="warning : number after equal and not in problem numbers";				
+		}
+		if(in_array(DecPol::computed, $solutions)&&(in_array(DecPol::problem, $solutions))){
+			$this->possibleAnomalies[]="computed Number is also a problem number";			
+		}
+	}
+	
+	public function computeReliabilityScore(){
+		$score=0;
+		$score+=count($this->possibleAnomalies)*20;
+		foreach($this->numberReliabilityScore as $numScore){
+			$score+=$numScore;
+		}
+		return $score;
+		
 	}
 	
 	private function callHistoryOf($nb,$option){
 		switch($option){
 			case DecPol::afterEqual:
 				if($nb==$this->lastElementAfterEqualSign){
-					if(in_array($nb,array_keys($this->simplFors))){
-						return "(" . $this->simplFors[$nb] . ")";
-					}
-					else{
-						return "rmi";//TODO: à faire
+					if(!in_array($nb,array_keys($this->simplFors))){
+						return "(" . $this->lastForm->formul . ")";
 					}
 				}
 				else{

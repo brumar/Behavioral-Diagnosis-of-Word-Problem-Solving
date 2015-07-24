@@ -5,6 +5,7 @@ require_once('enums/enum.regexPatterns.php');
 require_once('enums/enum.decision_policy.php');//name : DecPol
 require_once('class.mentalFormul.php');
 require_once('class.evalmath.php');
+require_once('class.anomalyManager.php');
 require_once('logger/Logger.php');
 Logger::configure('../configLogger.xml');// Tell log4php to use our configuration file.
 
@@ -14,7 +15,9 @@ class	Answer
 	public $policy;//indicates who numbers are infered where they come from
 	//3 fields added to support policy mecanisms
 	public $lastElementAfterEqualSign;
+	public $currentLastFormObj;
 	public $lastElementComputed;
+	public $anomalyManager;
 	//public $computedNumbers; not necessary as its the diff of numbers in pbm and $availableNumbers
 	
 	private	$strbrut;//text brut 
@@ -40,6 +43,9 @@ class	Answer
 	private $id;
 	private $ininterpretable=False; // boolean indicated if the answer is ininterpretaable --interprétable?
 	private $voidAnswer=False;
+	public $anomalies=[];
+	
+
 	
 
 	
@@ -51,6 +57,7 @@ class	Answer
 			$policy=[DecPol::lastComputed,DecPol::afterEqual,DecPol::computed,DecPol::problem])
 	//priorityList=["LastComputed","afterEqual","computed,"problem"]
 	{
+		$this->anomalyManager=new AnomaliesManager();
 		$this->eval= new EvalMath;
 		$this->logger = Logger::getLogger("main");
 		$this->availableMentalNumbers=[];
@@ -80,6 +87,7 @@ class	Answer
 		$this->sortFormulas();
 		$this->sequentialAnalysis($this->nbs); // most important line
 		$this->globalAnalysis();
+		$this->getAnomalies();
 		$this->printSummary();
 	}
 
@@ -235,6 +243,7 @@ class	Answer
 					
 					default:
 						$formlulaIsInterpretable=False;
+						$this->anomalyManager->addAnomaly("a formula has been considered ininterpretable");
 						$this->logger->info("interpretation process of the current formula has failed at this point");
 						break;
 					//too many or not enough mental calculations to understand this operations
@@ -337,6 +346,7 @@ class	Answer
 					if($mcal->result==$nb){
 						$this->logger->info("We drop this mental computation because the number is reused later by the student");
 						$this->logger->info($listOfMentalCalculations[$i]->str);
+						$this->anomalyManager->addAnomaly("droped mental computation to disamb because giving an answer used later");
 						unset($listOfMentalCalculations[$i]);
 						return $listOfMentalCalculations;
 					}
@@ -377,6 +387,7 @@ class	Answer
 		$this->simpl_fors_obj[]=$formula;
 		$this->simpl_fors[$formula->result] = $formula->formul;	
 		$this->lastElementComputed=$formula->result;
+		$this->currentLastFormObj=$formula;
 		if($formula->resol_typ!=Type_de_Resolution::operation_mentale){
 			$this->lastElementAfterEqualSign=$formula->nbs[2];
 		}
@@ -397,18 +408,35 @@ class	Answer
 		array_multisort($count, SORT_ASC,$this->simpl_formulas);*/
 	}
 	
-	public function detectMentalCalculations($formula){
+	public function getAnomalies(){
+		foreach($this->simpl_fors_obj as $form){
+			foreach($form->possibleAnomalies as $anom){
+				$this->anomalyManager->addAnomaly($anom);
+			}
+		}
+		preg_match_all(RegexPatterns::number, $this->str, $nbs); //not the best place to add these anomalies
+		$numbers=$nbs[0];
+		foreach($numbers as $nb){
+			if($nb!=$this->finalAnswer){
+				 if(array_search($nb, $this->availableNumbers)===False){
+				 	$this->anomalyManager->addAnomaly("unidentifiedNumber");
+				 }
+			}	
+		}
+	}
+	
+	public function detectMentalCalculations($formula,$context="disambFormula"){
 		preg_match_all(RegexPatterns::number, $formula, $nbs);
 		$numbersInFormula=$nbs[0];
 		$mentalCalculations=[];
 		foreach($numbersInFormula as $n){
-			if(!in_array($n,$this->availableNumbers)){
+			if(!in_array($n,$this->availableNumbers)||($context=="disambFinalAnswer")){//When we look at the final answer, 
 				if(in_array($n,array_keys($this->availableMentalNumbers))){
 					$mentalCalculations[$n]=[];
 					foreach($this->availableMentalNumbers[$n] as $possibleMentalCalculation){
 						$formstr=$possibleMentalCalculation["str"];
 						$this->logger->info("possible mental formula found : $formstr");
-						$nm=new MentalFormul($possibleMentalCalculation["str"], $this->nbs,$this->simpl_fors,$this->logger,$this->policy,$this->lastElementComputed,$this->lastElementAfterEqualSign);
+						$nm=new MentalFormul($possibleMentalCalculation["str"], $this->nbs,$this->simpl_fors,$this->logger,$this->policy,$this->lastElementComputed,$this->lastElementAfterEqualSign,$this->currentLastFormObj);
 						$u=array_diff($numbersInFormula, $nm->nbs);
 							$mentalCalculations[$n][]=$nm; 
 							$this->logger->info("mental calculation suggested : ");
