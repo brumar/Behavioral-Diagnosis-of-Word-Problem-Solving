@@ -35,7 +35,7 @@ class	SimplFormul
 		$this->lastElementComputed=$lastElementComputed;
 		$this->lastElementAfterEqualSign=$lastElementAfterEqualSign;
 		$this->nbProblem=$nbs_problem;
-		$this->simplFors=$simpl_fors;// TODO: Now stored in the class, an extra work is necessary to get rid of these arguments in functions
+		$this->simplFors=$simpl_fors; // TODO: Encapsulation principle
 		$this->logger=$logger;
 		$this->str = $str;
 		$this->logger->info("more precise investigation of the formula $str");
@@ -141,7 +141,7 @@ class	SimplFormul
 			$this->possibleAnomalies[]="warning : number after equal and not computed";
 			//TODO: Turn this into enum whenever possible
 		}
-		if(in_array(DecPol::afterEqual, $solutions)&&(!in_array(DecPol::computed, $solutions))&&(!in_array(DecPol::afterEqual, $solutions))){
+		if(in_array(DecPol::afterEqual, $solutions)&&(!in_array(DecPol::computed, $solutions))&&(!in_array(DecPol::problem, $solutions))){
 			$this->possibleAnomalies[]="warning : number after equal and not in problem numbers";				
 		}
 		if(in_array(DecPol::computed, $solutions)&&(in_array(DecPol::problem, $solutions))){
@@ -225,22 +225,25 @@ class	SimplFormul
 		if ($is_nb1 === FALSE)
 			$is_nb1 = array_key_exists($this->nbs[1], $simpl_fors);
 		// Test de la substraction inverse
-		if ($this->op_typ === Type_d_Operation::substraction && $this->nbs[0] < $this->nbs[1])
-		{
-			$this->resol_typ = Type_de_Resolution::substraction_inverse;
-			$this->result = $this->nbs[2];
-			$this->formul = $this->historyOf($this->nbs[1]) . $this->formul;
-			$this->formul .= $this->historyOf($this->nbs[0]);
-		}
+
 		// Reste
-		else if ($is_nb0 !== FALSE)
+		if ($is_nb0 !== FALSE)
 		{
 			if ($is_nb1 !== FALSE)
 			{
-				$this->resol_typ = Type_de_Resolution::simple_operation;
-				$this->result = $this->nbs[2];
-				$this->formul = $this->historyOf($this->nbs[0]) . $this->formul;
-				$this->formul .= $this->historyOf($this->nbs[1]);
+				if ($this->op_typ === Type_d_Operation::substraction && $this->nbs[0] < $this->nbs[1])
+				{
+					$this->resol_typ = Type_de_Resolution::substraction_inverse;
+					$this->result = $this->nbs[2];
+					$this->formul = $this->historyOf($this->nbs[1]) . $this->formul;
+					$this->formul .= $this->historyOf($this->nbs[0]);
+				}
+				else{
+					$this->resol_typ = Type_de_Resolution::simple_operation;
+					$this->result = $this->nbs[2];
+					$this->formul = $this->historyOf($this->nbs[0]) . $this->formul;
+					$this->formul .= $this->historyOf($this->nbs[1]);
+				}
 
 			}
 			else
