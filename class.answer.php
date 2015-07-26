@@ -41,9 +41,10 @@ class	Answer
 	public $finalFormula="";//final formula representing the whole solving process
 	private $reverseIndexLastFormula; //reversed index of the formula giving the result --indexFormuleFinale
 	private $id;
-	private $ininterpretable=False; // boolean indicated if the answer is ininterpretaable --interprétable?
-	private $voidAnswer=False;
+	public $ininterpretable=False; // boolean indicated if the answer is ininterpretaable --interprétable?
+	private $voidAnswer=False;//TODO: gérer cet attribut
 	public $anomalies=[];
+	public $NumberOfNumbers;
 	
 
 	
@@ -146,6 +147,7 @@ class	Answer
 		foreach($doublons as $doublon){
 			sort($doublon);
 			if($doublon[0]!=$doublon[1]){ // 42-42 and 42+42 are avoided
+				//TODO: This must be a function instead of a repetition for bloc moins
 				$n_moins=strval(intval($doublon[1])-intval($doublon[0])); //$doublon[1] always bigger because of sort
 				$n_plus=strval(intval($doublon[1])+intval($doublon[0]));
 				$blocPlus=["formula"=>$doublon[1].' + '.$doublon[0],"str"=>$doublon[1].' + '.$doublon[0].' = '.$n_plus];
@@ -235,7 +237,7 @@ class	Answer
 						
 					case 0 :
 						$this->logger->info("We try to drop a mental formula");
-						$next_form = (isset($this->simpl_formulas[$s+1])) ? $this->simpl_formulas[$s+1] : "";
+						$next_form = (isset($this->simpl_formulas[$s+1])) ? $this->simpl_formulas[$s+1] : ""; # TODO: mettre dans le workspace
 						$mentalCalculations=$this->dropLeastProbableMentalCalculations($mentalCalculations,$simpl_form,$next_form);
 						foreach ($mentalCalculations as $mentalCalculation){
 							$this->addFormula($mentalCalculation);
@@ -261,9 +263,9 @@ class	Answer
 	}
 	
 	public function reduceMentalCalculations($mentalCalculations){
-		//TODO: should use policy
 		//should compute score with that
 		//should raise warning if more than 1 mental calculation possible=>put in formulas
+		//
 
 		$flatListOfMentalComp=[];
 		
@@ -316,6 +318,7 @@ class	Answer
 	
 	public function	globalAnalysis()
 	{
+		$this->NumberOfNumbers=preg_match_all(RegexPatterns::number,$this->str,$unused);
 		// todo detect RMI here
 		if($this->finalAnswer!=""){
 			$found=False;
@@ -323,7 +326,7 @@ class	Answer
 				if ($formOb->result==$this->finalAnswer){
 					$this->logger->info("final formula is $formOb->str ");
 					$this->logger->info("then the summary formula is : $formOb->formul ");
-					$this->finalFormula=$formOb->formul;
+					$this->finalFormula=$formOb;
 					$this->reverseIndexLastFormula=$index;
 					return;
 				}
@@ -339,6 +342,8 @@ class	Answer
 					}
 					else{
 						$this->logger->info("We could not take a mental formula explaining results, probably because we could not select the best among various possibilities");
+						$this->ininterpretable=True;
+						return;
 					}
 				}
 			else{
@@ -359,7 +364,7 @@ class	Answer
 			$lform=end($this->simpl_fors_obj);
 			$this->logger->info("final formula (by default) is $lform->str ");
 			$this->logger->info("then the summary formula is : $lform->formul ");
-			$this->finalFormula=$lform->formul;
+			$this->finalFormula=$lform;
 			$this->reverseIndexLastFormula=1;
 			}
 		
@@ -389,7 +394,6 @@ class	Answer
 					if($mcal->result==$nb){
 						$this->logger->info("We drop this mental computation because the number is reused later by the student");
 						$this->logger->info($listOfMentalCalculations[$i]->str);
-						$this->anomalyManager->addAnomaly("droped mental computation to disamb because giving an answer used later");
 						unset($listOfMentalCalculations[$i]);
 						return $listOfMentalCalculations;
 					}
@@ -405,6 +409,7 @@ class	Answer
 			if($mcal->result==$lastNumber){
 				$this->logger->info("We drop the mental computation for the number after the equal (no better option)");
 				$this->logger->info($listOfMentalCalculations[$j]->str);
+				$this->anomalyManager->addAnomaly("droped mental computation to disamb, thinking that the number after the equal was the result");
 				unset($listOfMentalCalculations[$j]);
 				return $listOfMentalCalculations;
 			}			
