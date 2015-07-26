@@ -52,7 +52,8 @@ $toBeSerialized=True;
 $policy=[DecPol::lastComputed,DecPol::computed,DecPol::problem,DecPol::afterEqual];
 $count2=0;
 if($evaluate){
-	if ((($handleInput = fopen("AllDataOnlyCompleteFormula.csv", "r")) !== FALSE)&&(($handleOutput = fopen("comparison2.csv", "w")) !== FALSE)) {
+	//NumberOfNumbers
+	if ((($handleInput = fopen("Datas25072015.csv", "r")) !== FALSE)&&(($handleOutput = fopen("comparison2.csv", "w")) !== FALSE)) {
 		$titles = fgetcsv($handleInput, 541, ";"); //pop the first line (headers of columns)
 		$titles2=array("problem","answer");
 		for ($i=2;$i<count ($titles);$i++)
@@ -96,14 +97,28 @@ if($evaluate){
 	        print($row);
 
 	        $a=new Answer($answer, $numbers[$problem],True,"french",strval($row),$policy);
-	        $last_for_obj=end($a->simpl_fors_obj);
+	        $last_for_obj=$a->finalFormula;
 	        $globalAnalysis["completeformula"]=str_replace(' ', '',$last_for_obj->formul);
+	        $human_interp="1";
+	        if((strstr($data[11],"interp")!=False)||(strstr($data[10],"interp")!=False)){
+	        	$human_interp="0";
+	        }
+	        
+	        // CODE TO FIX CONVENTIONS PBMS
+	        
 	        if($last_for_obj->resol_typ==Type_de_Resolution::operation_mentale){
 	        	if(empty($data[10])){
-	        		$data[10]="itsok";
+	        		$data[10]="can't compare";
 	        	}
 	        }
 	         
+	        $cpu_interp = ($a->ininterpretable) ? '0' : '1';
+	        if($a->NumberOfNumbers<2){
+	        	$cpu_interp="1"; // to respect Valentine Convention, an answer is not marked uninterp when 0 or 1 number is given
+	        }
+	        if(($data[10]=="Néant")||($data[10]=="aucun calcul")||$data[10]=="non interprétable"){
+	        	$data[10]="";
+	        }
 
 	        
 	        
@@ -156,7 +171,8 @@ if($evaluate){
 	        //array('formula', 'operation','correct_computation', 'correct_identification')
 	        $etapeLine=array($data[2],$etape["formula"],$data[3],$etape["operation"],$data[4],$etape["correct_computation"],$data[5],$etape["correct_identification"]);
 	        $differenceline=array($data[6],$difference["formula"],$data[7],$difference["operation"],$data[8],$difference["correct_computation"],$data[9],$difference["correct_identification"]);
-	        $globalLine=array($data[10],$globalAnalysis["completeformula"],$data[11],$globalAnalysis["operation"],$data[12],$globalAnalysis["correct_computation"],$data[13],$globalAnalysis["correct_identification"],strval($a->anomalyManager->evalAnomalies()));
+	        $globalLine=array($data[10],$globalAnalysis["completeformula"],$data[11],$globalAnalysis["operation"],$data[12],$globalAnalysis["correct_computation"],$data[13],
+	        		$globalAnalysis["correct_identification"],strval($a->anomalyManager->evalAnomalies()),$cpu_interp,$human_interp);
 	        $lineForOutput=array_merge($input,$etapeLine,$differenceline,$globalLine);       
 	        fputcsv($handleOutput,$lineForOutput,";");		
 	    }
@@ -168,25 +184,40 @@ if($compare){
 
 // ETABLISHING SUCESS RATE 
 	$handleOutput_errors = fopen("50-100Errors_next.csv", "w");
-	$handleOutput_anom = fopen("SuccessVsAnom.csv", "w");
+	$handleOutput_R = fopen("temp.csv", "w");
 	$target=18;//INDEX of the target
 	$success=0;
 	$count=0;
+	fputcsv($handleOutput_R,["protocol","Success","formula_human","formula_cpu","Ininterp_human","Ininterp_cpu","AnomaliesCount","problem","problemSerie"],";");
 	if ((($handleInput = fopen("comparison2.csv", "r")) !== FALSE)) {
 		$titles = fgetcsv($handleInput, 541, ";"); //pop the first line (headers of columns)
 		while (($data = fgetcsv($handleInput, 541, ";")) !== FALSE) {
 			$t_val=$data[$target];
 			$t_adel=$data[$target+1];
+			//strval($a->anomalyManager->evalAnomalies()),$a->ininterpretable,$human_interp);
+			$problem=$data[0];
+			$protocol=$data[1];
+			$problemSerie=substr($problem, -2);
+			$anomalCount=$data[26];
+			$cpu_interp=$data[27];
+			$h_interp=$data[28];
+
 			$comp= new Comparator(["T1","P1","d"], $t_val, $t_adel,Logger::getLogger("main"));
-			$s=($t_val=="itsok")||($comp->compareExpressions()==True);
+			$successNumericValue=0;
+			if(($t_val=="can't compare")){
+				continue;//we don't study these ones as the conventions are pretty hard to respect
+			}
+			$s=($comp->compareExpressions()==True);
 			if($s){
 	 			$success++;
+	 			$successNumericValue=1;
 			}
 			else if($count-$success<100){
 				fputcsv($handleOutput_errors,$data,";");
 			}
-			$anom=[$s,$data[26]];
-			fputcsv($handleOutput_anom,$anom,";");
+			$line=[$protocol,$successNumericValue,$t_val,$t_adel,$h_interp,$cpu_interp,$anomalCount,$problem,$problemSerie];
+			//"Success","Ininterp_human","Ininterp_cpu","AnomaliesCount","problem","problemSerie"
+			fputcsv($handleOutput_R,$line,";");
 			$count++;
 		}
 		$rapport=($success/$count)*100;
@@ -194,7 +225,7 @@ if($compare){
 
 	}
 	fclose($handleInput);
-	fclose($handleOutput_anom);
+	fclose($handleOutput_R);
 	fclose($handleOutput_errors);
 }
 ?>
