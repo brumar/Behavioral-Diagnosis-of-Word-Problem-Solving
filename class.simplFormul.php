@@ -3,7 +3,7 @@
 require_once('enums/enum.type_d_operation.php');
 require_once('enums/enum.type_de_resolution.php');
 require_once('enums/enum.decision_policy.php');//name : DecPol
-require_once('enums/enum.simulation_arguments.php');
+require_once('enums/enum.simulation_arguments.php');// these global variables are made for research only
 
 class	SimplFormul
 {
@@ -83,9 +83,11 @@ class	SimplFormul
 		echo "<br />";
 	}
 
-	// Computes;
-	// - Operation type as in enum Type_d_Operation
 	private function	find_op_typ()
+	/*
+	 * Find the type of operation : basically just addition or soustraction
+	 * 
+	 */
 	{
 		if (strstr($this->str, "+") !== FALSE)
 		{
@@ -101,7 +103,11 @@ class	SimplFormul
 		$this->logger->info($this->formul);
 	}
 
-	private function	repairSign() //in case of formulas like 6-4=10 or 6+4=2 
+	private function	repairSign() 
+	/*
+	 *Repair formulas like 6-4=10 or 6+4=2 
+	*
+	*/
 	{
 		if (($this->formul == " + ")&&(abs($this->nbs[0]-$this->nbs[1])==$this->nbs[2]))
 		{
@@ -117,9 +123,22 @@ class	SimplFormul
 		}
 	}
 
-	private function	historyOf($nb) //nb is under its numeric form and is turned into its symbolic form like T1, P1, P1-d etc....
+	private function	historyOf($nb) 
 	{
-		//$policy=[DecPol::lastComputed,DecPol::afterEqual,DecPol::computed,DecPol::problem]
+	/*
+	 * Get symbolic representation based on problem numbers (e.g T1-P1) of a number, given its numeric form (e.g 10)
+	 * This is not a straightforward operation as sometimes numbers might have multiple possible sources
+	 * There are some nasty operations involved, using what we call a policy which ranks the reliability
+	 * of the different possible sources. 
+	 * 
+	 * An anomaly is raised up when different sources give different track for a number
+	 * This policy, despite being marginally better than suspension of interpretation and random selection
+	 * is not fully convincing and could be improved with a better model of the student, or how the human understand the student 
+	 * 
+	 * A side product of this function is to instanciate a numberReliabilityScore for each number of this formula.
+	 * This is to be used in higher level functions deciding which formula to select based on the reliability
+	 * of the different sources of numbers which composed this formula
+	*/
 		$solutions=[];
 		foreach($this->policy as $option){
 			$solution=$this->callHistoryOf($nb,$option);
@@ -130,6 +149,8 @@ class	SimplFormul
 		$this->checkForDoubts($solutions);
 		//now handle the case where multiple solutions are possible => raise warning
 		if(Sargs::backtrackPolicy!=Sargs_value::random){
+			//the random value of this global variable is  to test how good is our selected policy
+			// this is made for research only
 			$finalVal=array_values($solutions)[0];
 		}
 		else{
@@ -138,41 +159,56 @@ class	SimplFormul
 		$optionSelected=array_search($finalVal,$solutions);
 		$policyRank=count($this->policy)-array_search($optionSelected, $this->policy);
 		$this->numberReliabilityScore[$nb]=$policyRank;
+		//
 		return $finalVal;
 		//$lastForm
 	}
 	
 	private function checkForDoubts($solutions){
+		/*
+		 * Check if different sources give different track for a number
+		 * And raise an anomaly each time it happens.
+		 */
 		$keys=array_keys($solutions);
 		$message="warning ! Possible contradiction between two available tracks : ";
 		if(in_array(DecPol::afterEqual,$keys )&&(in_array(DecPol::computed, $keys))){
 			if($solutions[DecPol::afterEqual]!=$solutions[DecPol::computed]){
-				$this->possibleAnomalies[]=$message+"After equal and computed"; //TODO: Turn this into enum whenever possible
+				$this->possibleAnomalies[]=$message."After equal and computed"; //TODO: Turn this into enum whenever possible
 			}		
 		}
 		if(in_array(DecPol::afterEqual, $keys)&&(in_array(DecPol::problem, $keys))){
 			if($solutions[DecPol::afterEqual]!=$solutions[DecPol::problem]){
-				$this->possibleAnomalies[]=$message+"after equal and problem numbers";	
+				$this->possibleAnomalies[]=$message."after equal and problem numbers";	
 			}
 		}
 		if(in_array(DecPol::computed, $keys)&&(in_array(DecPol::problem, $keys))){
 			if($solutions[DecPol::computed]!=$solutions[DecPol::problem]){
-				$this->possibleAnomalies[]=$message+"number computed and problem numbers";
+				$this->possibleAnomalies[]=$message."number computed and problem numbers";
 			}
 		}
 	}
 	
 	public function computeReliabilityScore(){
+		/*
+		 * Function to compute the reliability of the whole formula
+		 * 
+		 */
 		$score=0;
-		$score+=count($this->possibleAnomalies)*20;
+		$score+=count($this->possibleAnomalies)*20; 
+		// This way, when selecting a formula scores are used only if the number of anomalies are the same 
 		foreach($this->numberReliabilityScore as $numScore){
-			$score+=$numScore;
+			$score+=$numScore; 
 		}
 		return $score;
 		
 	}
 	
 	private function callHistoryOf($nb,$option){
+		/*
+		 * Used to find the different sources of the number, and give it
+		 * as a symbolic expression (like T1-d)
+		*
+		*/
 		switch($option){
 			case DecPol::afterEqual:
 				if($nb==$this->lastElementAfterEqualSign){
@@ -227,6 +263,11 @@ class	SimplFormul
 	// pour faciliter la reconnaissance des nombres
 	// et ne pas confondre 4 et 45 par exemple.
 	private function	find_resol_typ($nbs_problem, $simpl_fors)
+	/*
+	 * Used to find the carateristics of the formula
+	 * There are many possibilities, check the enumeration class to have a whole picture
+	*
+	*/
 	{
 		$this->logger->info("try to find operation type");
 
@@ -312,6 +353,9 @@ class	SimplFormul
 	// Outputs:
 	// - calcul_error (int)
 	private function	find_miscalc()
+	/*
+	 * Find possible misscalculations
+	 */
 	{ 
 		switch($this->op_typ)
 		{
