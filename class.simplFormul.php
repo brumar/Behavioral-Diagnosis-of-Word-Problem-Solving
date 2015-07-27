@@ -127,7 +127,7 @@ class	SimplFormul
 				$solutions[$option]=$solution;
 			}
 		}
-		$this->checkForDoubts(array_keys($solutions));
+		$this->checkForDoubts($solutions);
 		//now handle the case where multiple solutions are possible => raise warning
 		if(Sargs::backtrackPolicy!=Sargs_value::random){
 			$finalVal=array_values($solutions)[0];
@@ -143,15 +143,22 @@ class	SimplFormul
 	}
 	
 	private function checkForDoubts($solutions){
-		if(in_array(DecPol::afterEqual, $solutions)&&(!in_array(DecPol::computed, $solutions))){
-			$this->possibleAnomalies[]="warning : number after equal and not computed";
-			//TODO: Turn this into enum whenever possible
+		$keys=array_keys($solutions);
+		$message="warning ! Possible contradiction between two available tracks : ";
+		if(in_array(DecPol::afterEqual,$keys )&&(in_array(DecPol::computed, $keys))){
+			if($solutions[DecPol::afterEqual]!=$solutions[DecPol::computed]){
+				$this->possibleAnomalies[]=$message+"After equal and computed"; //TODO: Turn this into enum whenever possible
+			}		
 		}
-		if(in_array(DecPol::afterEqual, $solutions)&&(!in_array(DecPol::computed, $solutions))&&(!in_array(DecPol::problem, $solutions))){
-			$this->possibleAnomalies[]="warning : number after equal and not in problem numbers";				
+		if(in_array(DecPol::afterEqual, $keys)&&(in_array(DecPol::problem, $keys))){
+			if($solutions[DecPol::afterEqual]!=$solutions[DecPol::problem]){
+				$this->possibleAnomalies[]=$message+"after equal and problem numbers";	
+			}
 		}
-		if(in_array(DecPol::computed, $solutions)&&(in_array(DecPol::problem, $solutions))){
-			$this->possibleAnomalies[]="computed Number is also a problem number";			
+		if(in_array(DecPol::computed, $keys)&&(in_array(DecPol::problem, $keys))){
+			if($solutions[DecPol::computed]!=$solutions[DecPol::problem]){
+				$this->possibleAnomalies[]=$message+"number computed and problem numbers";
+			}
 		}
 	}
 	

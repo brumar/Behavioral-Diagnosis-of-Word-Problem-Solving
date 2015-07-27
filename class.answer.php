@@ -278,9 +278,14 @@ class	Answer
 			if($formlulaIsInterpretable==True)
 			{
 				$formula=new SimplFormul($simpl_form, $nbs_problem, $this->simpl_fors,$this->logger,$this->policy,$this->lastElementComputed,$this->lastElementAfterEqualSign,$this->currentLastFormObj);
-				$i=$this->addFormula($formula);	
-				$this->updateAvailableNumbers();
-				$this->updateAvailableMentalNumbers();
+				if(Sargs::backtrackPolicy==Sargs_value::suspend && count($formula->possibleAnomalies)>0){
+					$formlulaIsInterpretable=False;
+				}
+				else{
+					$i=$this->addFormula($formula);	
+					$this->updateAvailableNumbers();
+					$this->updateAvailableMentalNumbers();
+				}
 			}
 		}
 	}
