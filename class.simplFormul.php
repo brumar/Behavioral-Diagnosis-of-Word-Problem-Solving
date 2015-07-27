@@ -3,6 +3,7 @@
 require_once('enums/enum.type_d_operation.php');
 require_once('enums/enum.type_de_resolution.php');
 require_once('enums/enum.decision_policy.php');//name : DecPol
+require_once('enums/enum.simulation_arguments.php');
 
 class	SimplFormul
 {
@@ -128,7 +129,12 @@ class	SimplFormul
 		}
 		$this->checkForDoubts(array_keys($solutions));
 		//now handle the case where multiple solutions are possible => raise warning
-		$finalVal=array_values($solutions)[0];
+		if(Sargs::backtrackPolicy!=Sargs_value::random){
+			$finalVal=array_values($solutions)[0];
+		}
+		else{
+			$finalVal=array_values($solutions)[mt_rand(0, count($solutions) - 1)];
+		}
 		$optionSelected=array_search($finalVal,$solutions);
 		$policyRank=count($this->policy)-array_search($optionSelected, $this->policy);
 		$this->numberReliabilityScore[$nb]=$policyRank;

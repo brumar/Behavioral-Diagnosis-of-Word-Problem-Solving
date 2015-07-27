@@ -3,6 +3,7 @@
 require_once('class.simplFormul.php');
 require_once('enums/enum.regexPatterns.php');
 require_once('enums/enum.decision_policy.php');//name : DecPol
+require_once('enums/enum.simulation_arguments.php');
 require_once('class.mentalFormul.php');
 require_once('class.evalmath.php');
 require_once('class.anomalyManager.php');
@@ -81,20 +82,33 @@ class	Answer
 	 */
 	 public function process() {
 		$this->loginit ($this->id);//$id is for log only (in order to ease browsing)
-		$this->replaceElementsInAnswer();
-		$this->repairSpecialFormulas();
+		//simulation_arguments
+		$this->prepareString();
+		$this->firstGlobalAnalysis();
+		$this->sequentialAnalysis($this->nbs); // most important line
+		$this->lastGlobalAnalysis();
+
+	}
+	
+	public function firstGlobalAnalysis(){
 		$this->updateAvailableMentalNumbers();
 		$this->findFinalAnswer();
 		$this->find_simpl_for();
-		$this->sortFormulas();
-		$this->sequentialAnalysis($this->nbs); // most important line
-		$this->globalAnalysis();
-		$this->getAnomalies();
-		$this->printSummary();
+	}
+	
+	public function prepareString(){
+		if(Sargs::manipulateStringBefore==Sargs_value::keep){
+			$this->replaceElementsInAnswer();
+			$this->repairSpecialFormulas();
+		}
+		else{
+			$this->str=$this->strbrut;
+		}
 	}
 
 	
 	public function printSummary(){
+		//print formulas in HTML
 		if($this->verbose==True){
 			foreach($this->simpl_fors_obj as $form)
 			{
@@ -220,36 +234,45 @@ class	Answer
 			$this->logger->info("analyse of this formula : $simpl_form");
 			$this->logger->info("number of unkwowns numbers in the formula (1 is the simplest case) ");
 			$this->logger->info($nUnkowns);
-			if($nUnkowns>1){				
-				$this->logger->info("we try to detect mental calculations");
-				$mentalCalculations=$this->detectMentalCalculations($simpl_form);//
-				$mentalCalculations=$this->reduceMentalCalculations($mentalCalculations);
-				$nRealUnknowns=$nUnkowns-count($mentalCalculations);
-				$this->logger->info("After the mental computation investigation, we count the number of remaining unkwowns (1 is the simplest case) ");
-				$this->logger->info($nRealUnknowns);
-				switch ($nRealUnknowns)
-				{
-					case 1 :
-						foreach ($mentalCalculations as $mentalCalculation){
-							$this->addFormula($mentalCalculation);
-						}
-						break;
+			if($nUnkowns>1){
+				if(Sargs::inferMentalCalculation==Sargs_value::keep){				
+					$this->logger->info("we try to detect mental calculations");
+					$mentalCalculations=$this->detectMentalCalculations($simpl_form);//
+					$mentalCalculations=$this->reduceMentalCalculations($mentalCalculations);
+					$nRealUnknowns=$nUnkowns-count($mentalCalculations);
+					$this->logger->info("After the mental computation investigation, we count the number of remaining unkwowns (1 is the simplest case) ");
+					$this->logger->info($nRealUnknowns);
+					switch ($nRealUnknowns)
+					{
+						case 1 :
+							foreach ($mentalCalculations as $mentalCalculation){
+								$this->addFormula($mentalCalculation);
+							}
+							break;
+							
+						case 0 :
+							if(Sargs::dropLeastMentalCalculation==Sargs_value::keep){
+								$this->logger->info("We try to drop a mental formula");
+								$next_form = (isset($this->simpl_formulas[$s+1])) ? $this->simpl_formulas[$s+1] : ""; # TODO: mettre dans le workspace
+								$mentalCalculations=$this->dropLeastProbableMentalCalculations($mentalCalculations,$simpl_form,$next_form);
+								foreach ($mentalCalculations as $mentalCalculation){
+									$this->addFormula($mentalCalculation);
+								}
+							}
+							else{
+								$formlulaIsInterpretable=False;
+							}
+						break;		
 						
-					case 0 :
-						$this->logger->info("We try to drop a mental formula");
-						$next_form = (isset($this->simpl_formulas[$s+1])) ? $this->simpl_formulas[$s+1] : ""; # TODO: mettre dans le workspace
-						$mentalCalculations=$this->dropLeastProbableMentalCalculations($mentalCalculations,$simpl_form,$next_form);
-						foreach ($mentalCalculations as $mentalCalculation){
-							$this->addFormula($mentalCalculation);
-						}
-					break;		
-					
-					default:
-						$formlulaIsInterpretable=False;
-						$this->anomalyManager->addAnomaly("a formula has been considered ininterpretable");
-						$this->logger->info("interpretation process of the current formula has failed at this point");
-						break;
-					//too many or not enough mental calculations to understand this operations
+						default:
+							$formlulaIsInterpretable=False;
+							$this->anomalyManager->addAnomaly("a formula has been considered ininterpretable");
+							$this->logger->info("interpretation process of the current formula has failed at this point");
+							break;
+						//too many or not enough mental calculations to understand this operations
+					}
+				}else{
+					$formlulaIsInterpretable=False;
 				}
 			}
 			if($formlulaIsInterpretable==True)
@@ -270,11 +293,16 @@ class	Answer
 		$flatListOfMentalComp=[];
 		
 		foreach($mentalCalculations as $listOfMentalCalculation){
-			$remainingMentalComputation=$this->reduceParticularMentalComp($listOfMentalCalculation);
-			if(!empty($remainingMentalComputation)){
-				$flatListOfMentalComp[]=$remainingMentalComputation;
+			if(Sargs::reduceMentalCalculations==Sargs_value::keep){
+				$remainingMentalComputation=$this->reduceParticularMentalComp($listOfMentalCalculation);
+				if(!empty($remainingMentalComputation)){
+					$flatListOfMentalComp[]=$remainingMentalComputation;
+				}
 			}
-		}
+			elseif(Sargs::reduceMentalCalculations==Sargs_value::random){
+					$flatListOfMentalComp[]=$listOfMentalCalculation[mt_rand(0, count($listOfMentalCalculation) - 1)];
+				}
+			}
 	return $flatListOfMentalComp;	
 	}
 	
@@ -316,8 +344,14 @@ class	Answer
 		}
 	}
 	
-	public function	globalAnalysis()
+	public function	lastGlobalAnalysis()
 	{
+		$this->getAnomalies();
+		$this->findInterprateFinalAnwser();
+		$this->printSummary();
+	}
+	
+	public function findInterprateFinalAnwser(){
 		$this->NumberOfNumbers=preg_match_all(RegexPatterns::number,$this->str,$unused);
 		// todo detect RMI here
 		if($this->finalAnswer!=""){
@@ -332,30 +366,30 @@ class	Answer
 				}
 			}
 			if(in_array($this->finalAnswer,array_keys($this->availableMentalNumbers))){
-					$mentals=$this->detectMentalCalculations(strval($this->finalAnswer),"disambFinalAnswer");//trick to reuse function
-					$mental=$this->reduceMentalCalculations($mentals);
-					if(!empty($mental)){
-						$mentalFinal=$mental[0];//by construction we know that a single mentalCalculation is there
-						$this->simpl_fors_obj[]=$mentalFinal;
-						$this->simpl_fors[$mentalFinal->result] = $mentalFinal->formul;
-						$this->logger->info("possible mental formula found to explain final result:  $mentalFinal->formul");
-					}
-					else{
-						$this->logger->info("We could not take a mental formula explaining results, probably because we could not select the best among various possibilities");
-						$this->ininterpretable=True;
-						return;
-					}
+				$mentals=$this->detectMentalCalculations(strval($this->finalAnswer),"disambFinalAnswer");//trick to reuse function
+				$mental=$this->reduceMentalCalculations($mentals);
+				if(!empty($mental)){
+					$mentalFinal=$mental[0];//by construction we know that a single mentalCalculation is there
+					$this->simpl_fors_obj[]=$mentalFinal;
+					$this->simpl_fors[$mentalFinal->result] = $mentalFinal->formul;
+					$this->logger->info("possible mental formula found to explain final result:  $mentalFinal->formul");
 				}
+				else{
+					$this->logger->info("We could not take a mental formula explaining results, probably because we could not select the best among various possibilities");
+					$this->ininterpretable=True;
+					return;
+				}
+			}
 			else{
 				$this->logger->info("NO FORMULA EXPLAINS THE NUMBER GIVEN AS AN ANSWER");
 				$this->ininterpretable=True;
 				return;
 			}
-
+		
 		}
 		//if no answer explitely given ones take the last formula as referent
 		if(count($this->simpl_fors_obj)==0){ // if there is no "last formula => end
-			
+				
 			$this->ininterpretable=True;//TODO : global status of the answer as an enum, it would allow more  precise information such as "no formula detected"
 			$this->logger->info("No formula Found");
 			return ;
@@ -366,10 +400,9 @@ class	Answer
 			$this->logger->info("then the summary formula is : $lform->formul ");
 			$this->finalFormula=$lform;
 			$this->reverseIndexLastFormula=1;
-			}
+		}
 		
-		//TODO : 
-		
+		//TODO :
 	}
 	
 	public function dropLeastProbableMentalCalculations($listOfMentalCalculations,$simpl_form,$next_form){
