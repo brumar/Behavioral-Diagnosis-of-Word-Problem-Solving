@@ -46,7 +46,7 @@ $numbers["Tp1_v1"]=array("7"=>"P1", "16"=>"T1", "3"=>"d");
 
 $row = 1;
 set_time_limit(300);
-$evaluate=True;
+$evaluate=False;
 $compare=True;
 $toBeSerialized=True;
 $policy=[DecPol::lastComputed,DecPol::computed,DecPol::problem,DecPol::afterEqual];
@@ -97,6 +97,7 @@ if($evaluate){
 	        print($row);
 
 	        $a=new Answer($answer, $numbers[$problem],True,"french",strval($row),$policy);
+	        $a->process();
 	        $last_for_obj=$a->finalFormula;
 	        $globalAnalysis["completeformula"]=str_replace(' ', '',$last_for_obj->formul);
 	        $human_interp="1";
@@ -172,7 +173,7 @@ if($evaluate){
 	        $etapeLine=array($data[2],$etape["formula"],$data[3],$etape["operation"],$data[4],$etape["correct_computation"],$data[5],$etape["correct_identification"]);
 	        $differenceline=array($data[6],$difference["formula"],$data[7],$difference["operation"],$data[8],$difference["correct_computation"],$data[9],$difference["correct_identification"]);
 	        $globalLine=array($data[10],$globalAnalysis["completeformula"],$data[11],$globalAnalysis["operation"],$data[12],$globalAnalysis["correct_computation"],$data[13],
-	        		$globalAnalysis["correct_identification"],strval($a->anomalyManager->evalAnomalies()),$cpu_interp,$human_interp);
+	        		$globalAnalysis["correct_identification"],strval($a->anomalyManager->evalAnomalies()),$cpu_interp,$human_interp,strval($row));
 	        $lineForOutput=array_merge($input,$etapeLine,$differenceline,$globalLine);       
 	        fputcsv($handleOutput,$lineForOutput,";");		
 	    }
@@ -183,13 +184,22 @@ if($evaluate){
 if($compare){
 
 // ETABLISHING SUCESS RATE 
+	$date=date("D_M_H_i");
 	$handleOutput_errors = fopen("50-100Errors_next.csv", "w");
 	$handleOutput_R = fopen("temp.csv", "w");
+	$handleOutput_Experimentation = fopen("experimentation".$date.".csv", "w");
+	$handleOutput_ExperimentationKey = fopen("ExpKey".$date.".csv", "w");
+	//todo : random 0/1
+	//create key-value shuffle, store in ExperimentationKey
+	//at the end=>shuffle
+	// drop multiplication
+	
 	$target=18;//INDEX of the target
 	$success=0;
 	$count=0;
 	fputcsv($handleOutput_R,["protocol","Success","formula_human","formula_cpu","Ininterp_human","Ininterp_cpu","AnomaliesCount","problem","problemSerie"],";");
 	if ((($handleInput = fopen("comparison2.csv", "r")) !== FALSE)) {
+		$linesExp=[];
 		$titles = fgetcsv($handleInput, 541, ";"); //pop the first line (headers of columns)
 		while (($data = fgetcsv($handleInput, 541, ";")) !== FALSE) {
 			$t_val=$data[$target];
@@ -201,6 +211,7 @@ if($compare){
 			$anomalCount=$data[26];
 			$cpu_interp=$data[27];
 			$h_interp=$data[28];
+			$id=$data[29];
 
 			$comp= new Comparator(["T1","P1","d"], $t_val, $t_adel,Logger::getLogger("main"));
 			$successNumericValue=0;
@@ -216,14 +227,47 @@ if($compare){
 				fputcsv($handleOutput_errors,$data,";");
 			}
 			$line=[$protocol,$successNumericValue,$t_val,$t_adel,$h_interp,$cpu_interp,$anomalCount,$problem,$problemSerie];
-			//"Success","Ininterp_human","Ininterp_cpu","AnomaliesCount","problem","problemSerie"
 			fputcsv($handleOutput_R,$line,";");
+			
+			// EXPERIMENTATION - key/val from random
+			if($cpu_interp=="0"){
+				$t_adel="ininterp";
+			}
+			if($h_interp=="0"){
+				$t_val="ininterp";
+			}
+			$p=explode(" ", $t_val); //avoid spacing
+			$t_val=end($p); // we only take the second part if there are two parts e.g T1-P1 T1+P1, only T1+P1 is taken
+			
+			$interps=[$t_val,$t_adel];
+			$rd=rand(0, 1);
+			$formulaOne=$interps[$rd];
+			$formulaTwo=$interps[1-$rd];
+			$lineKey=[$id,$rd];
+			
+			
+			//EXPERIMENTATION - more or less the csv displayed to judges
+			if($successNumericValue==0){
+				$n=$numbers[$problem];
+				$ak=array_keys($n);
+				arsort($ak);
+				$values=implode('|',$ak);
+				$lineExp=[$id,$problem,$protocol,$values,$formulaOne,"",$formulaTwo,"","1","2","3","4"];
+				$linesExp[]=$lineExp;
+				fputcsv($handleOutput_ExperimentationKey,$lineKey,";");
+			}
 			$count++;
 		}
 		$rapport=($success/$count)*100;
 		echo "success rate over the $target collumn is $rapport";
 
 	}
+	shuffle($linesExp);
+	foreach($linesExp as $l){
+		fputcsv($handleOutput_Experimentation,$l,";");
+	}
+	
+	
 	fclose($handleInput);
 	fclose($handleOutput_R);
 	fclose($handleOutput_errors);
