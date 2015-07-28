@@ -516,7 +516,7 @@ class	Answer
 		$numbersInFormula=$nbs[0];
 		$mentalCalculations=[];
 		foreach($numbersInFormula as $n){
-			if(!in_array($n,$this->availableNumbers)||($context=="disambFinalAnswer")){//When we look at the final answer, 
+			if(!in_array($n,$this->availableNumbers)||($context=="disambFinalAnswer")){//This context exception is to look for mental computation even if this is also a number given in the problem. If this is a result of an explicit operation then detectMentalCalculations is not called anyway.
 				if(in_array($n,array_keys($this->availableMentalNumbers))){
 					$mentalCalculations[$n]=[];
 					foreach($this->availableMentalNumbers[$n] as $possibleMentalCalculation){
