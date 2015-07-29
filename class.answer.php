@@ -156,7 +156,7 @@ class	Answer
 						case 0 :
 							//when you see a+b=c and you don't know where a (and c) comes from...and both are explainable by mental computations
 							//here you will keep c as the result of the formula, but there are other cases more problematic, cf dropLeastProbableMentalCalculations
-							if(Sargs::dropLeastMentalCalculation==Sargs_value::keep){
+							if(Sargs::dropLeastMentalCalculation!=Sargs_value::suspend){
 								$this->logger->info("We try to drop a mental formula");
 								$next_form = (isset($this->simpl_formulas[$s+1])) ? $this->simpl_formulas[$s+1] : ""; # TODO: mettre dans le workspace
 								$mentalCalculations=$this->dropLeastProbableMentalCalculations($mentalCalculations,$simpl_form,$next_form);
@@ -289,19 +289,22 @@ class	Answer
 		/*
 		 * Fix the problem when multiple mental calculations can explain the presence of a sole number
 		 * Fix a list of list of mental calculations related to a formula
+		 * 
+		 * Suggestion : This reduction operation is not benine, more than raising an anomaly, should it be used in subsequent scoring operation
+		 * that can happens in the "dropTheLeast" operation.
 		 */
 
 
 		$flatListOfMentalComp=[];
 		
 		foreach($mentalCalculations as $listOfMentalCalculation){
-			if(Sargs::reduceMentalCalculations==Sargs_value::keep){
+			if(Sargs::reduceMentalCalculations!=Sargs_value::random){
 				$remainingMentalComputation=$this->reduceParticularMentalComp($listOfMentalCalculation);
 				if(!empty($remainingMentalComputation)){
 					$flatListOfMentalComp[]=$remainingMentalComputation;
 				}
 			}
-			elseif(Sargs::reduceMentalCalculations==Sargs_value::random){
+			else{
 					$flatListOfMentalComp[]=$listOfMentalCalculation[mt_rand(0, count($listOfMentalCalculation) - 1)];
 				}
 			}
@@ -315,34 +318,39 @@ class	Answer
 		 */
 		$scores=[];
 		if(count($listOfMentalCalculation)>1){
-			$message="various mental computation are possible to explain a number";
-			$this->anomalyManager->addAnomaly($message);
-			$this->logger->info($message);
-			$this->logger->info("we try to find the most obvious one");
-			foreach($listOfMentalCalculation as $ind=>$mentalCalc){
-				$scores[$ind]=$mentalCalc->computeReliabilityScore();
-			}
-			$max=0;
-			$selected=0;
-			$equalityWarning=False;
-			foreach ($scores as $ind2=>$score){
-				if($score==$max){
-					$equalityWarning=True;
+			if(Sargs::reduceMentalCalculations==Sargs_value::keep){
+				$message="various mental computation are possible to explain a number";
+				$this->anomalyManager->addAnomaly($message);
+				$this->logger->info($message);
+				$this->logger->info("we try to find the most obvious one");
+				foreach($listOfMentalCalculation as $ind=>$mentalCalc){
+					$scores[$ind]=$mentalCalc->computeReliabilityScore();
 				}
-				if($score>$max){
-					$equalityWarning=False;
-					$max=$score;
-					$selected=$ind2;
+				$max=0;
+				$selected=0;
+				$equalityWarning=False;
+				foreach ($scores as $ind2=>$score){
+					if($score==$max){
+						$equalityWarning=True;
+					}
+					if($score>$max){
+						$equalityWarning=False;
+						$max=$score;
+						$selected=$ind2;
+					}
 				}
-			}
-			if($equalityWarning){
-				$this->logger->info("scores for each formula are equal, we abandon the process");
-				$flatListOfMentalComp=[];
-				$this->anomalyManager->addAnomaly("scoring comparison in reduceParticularMentalComp has failed");
+				if($equalityWarning){
+					$this->logger->info("scores for each formula are equal, we abandon the process");
+					$flatListOfMentalComp=[];
+					$this->anomalyManager->addAnomaly("scoring comparison in reduceParticularMentalComp has failed");
+				}
+				else{
+					$selectedMental=$listOfMentalCalculation[$selected];
+					return $selectedMental;
+				}
 			}
 			else{
-				$selectedMental=$listOfMentalCalculation[$selected];
-				return $selectedMental;
+				return [];
 			}
 		}
 		else{
@@ -426,6 +434,13 @@ class	Answer
 		 * If too many mental calculations explain the formula, then we need to drop one
 		* the final answer given by the student.
 		*/		
+		
+		if(Sargs::dropLeastMentalCalculation==Sargs_value::random){
+			$indexToSuspend=mt_rand(0, count($listOfMentalCalculations) - 1);
+			unset($listOfMentalCalculations[$indexToSuspend]);
+			return $listOfMentalCalculations;
+		}
+		
 		if($next_form=="") 
 		// if the formula studied is the last formula, check if one number is given as an answer
 			{
