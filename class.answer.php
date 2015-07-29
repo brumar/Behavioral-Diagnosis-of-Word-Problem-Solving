@@ -132,7 +132,8 @@ class	Answer
 		foreach ($this->simpl_formulas as $s=>$simpl_form)
 		{
 			$formlulaIsInterpretable=True;
-			$nUnkowns=$this->unknownCount($simpl_form);
+			$knownNumbers=$this->getNumbersKnownInFormula($simpl_form);
+			$nUnkowns=count($knownNumbers);
 			$this->logger->info("analyse of this formula : $simpl_form");
 			$this->logger->info("number of unkwowns numbers in the formula (1 is the simplest case) ");
 			$this->logger->info($nUnkowns);
@@ -140,7 +141,7 @@ class	Answer
 				if(Sargs::inferMentalCalculation==Sargs_value::keep){	// you need to check for mental computation, if you want to.
 					$this->logger->info("we try to detect mental calculations");
 					$mentalCalculations=$this->detectMentalCalculations($simpl_form);//
-					$mentalCalculations=$this->reduceMentalCalculations($mentalCalculations);
+					$mentalCalculations=$this->reduceMentalCalculations($mentalCalculations,$knownNumbers);
 					//sometimes many computations can explain the same number, this is why we select only the most probable
 					$nRealUnknowns=$nUnkowns-count($mentalCalculations);// how many unknowns remaining ?
 					$this->logger->info("After the mental computation investigation, we count the number of remaining unkwowns (1 is the simplest case) ");
@@ -285,7 +286,7 @@ class	Answer
 		$this->formulaCount=count($this->simpl_formulas);
 	}
 	
-	public function reduceMentalCalculations($mentalCalculations){
+	public function reduceMentalCalculations($mentalCalculations,$knownNumbers){
 		/*
 		 * Fix the problem when multiple mental calculations can explain the presence of a sole number
 		 * Fix a list of list of mental calculations related to a formula
@@ -299,7 +300,7 @@ class	Answer
 		
 		foreach($mentalCalculations as $listOfMentalCalculation){
 			if(Sargs::reduceMentalCalculations!=Sargs_value::random){
-				$remainingMentalComputation=$this->reduceParticularMentalComp($listOfMentalCalculation);
+				$remainingMentalComputation=$this->reduceParticularMentalComp($listOfMentalCalculation,$knownNumbers);
 				if(!empty($remainingMentalComputation)){
 					$flatListOfMentalComp[]=$remainingMentalComputation;
 				}
@@ -311,7 +312,7 @@ class	Answer
 	return $flatListOfMentalComp;	
 	}
 	
-	public function reduceParticularMentalComp($listOfMentalCalculation){
+	public function reduceParticularMentalComp($listOfMentalCalculation,$knownNumbers){
 		/*
 		 * Fix the problem when multiple mental calculations can explain the presence of a sole number
 		 * Fix a list of mental calculations explaining a number
@@ -320,13 +321,14 @@ class	Answer
 		if(count($listOfMentalCalculation)>1){
 			if(Sargs::reduceMentalCalculations==Sargs_value::keep){
 				$message="various mental computation are possible to explain a number";
+											
 				$this->anomalyManager->addAnomaly($message);
 				$this->logger->info($message);
 				$this->logger->info("we try to find the most obvious one");
 				foreach($listOfMentalCalculation as $ind=>$mentalCalc){
-					$scores[$ind]=$mentalCalc->computeReliabilityScore();
+					$scores[$ind]=$mentalCalc->computeReliabilityScore($knownNumbers);
 				}
-				$max=0;
+				$max=-1000;
 				$selected=0;
 				$equalityWarning=False;
 				foreach ($scores as $ind2=>$score){
@@ -391,7 +393,7 @@ class	Answer
 			}
 			if(in_array($this->finalAnswer,array_keys($this->availableMentalNumbers))){
 				$mentals=$this->detectMentalCalculations(strval($this->finalAnswer),"disambFinalAnswer");//trick to reuse function
-				$mental=$this->reduceMentalCalculations($mentals);
+				$mental=$this->reduceMentalCalculations($mentals,[]);
 				if(!empty($mental)){
 					$mentalFinal=$mental[0];//by construction we know that a single mentalCalculation is there
 					$this->simpl_fors_obj[]=$mentalFinal;
@@ -549,13 +551,14 @@ class	Answer
 		return $mentalCalculations;
 	}
 	
-	public function unknownCount($simpl_formula)
-	{
-		preg_match_all(RegexPatterns::number, $simpl_formula, $nbs);
+	
+	public function getNumbersKnownInFormula($f){
+		preg_match_all(RegexPatterns::number, $f, $nbs);
 		$numbersInFormula=$nbs[0];
-		$c=count(array_diff($numbersInFormula,$this->availableNumbers));
-		return $c;
+		$ns=array_diff($numbersInFormula,$this->availableNumbers);
+		return $ns;
 	}
+
 
 	static function initReplacements(){	
 		self::$tabReplacements['french']['1']=array(' un ','01');

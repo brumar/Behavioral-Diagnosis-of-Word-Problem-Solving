@@ -19,6 +19,7 @@ class	SimplFormul
 	public $result;//--Résultat
 	public $formul;//--Symbolique
 	public $logger;
+	public $operands=[];
 	
 	public $simplFors;
 	public $nbProblem;
@@ -188,13 +189,17 @@ class	SimplFormul
 		}
 	}
 	
-	public function computeReliabilityScore(){
+	public function computeReliabilityScore($knownNumbers){
 		/*
 		 * Function to compute the reliability of the whole formula
 		 * 
 		 */
 		$score=0;
-		$score+=count($this->possibleAnomalies)*20; 
+		//$score-=count(array_intersect($knownNumbers,$this->operands))*20;
+		// commented out, finally this is hard to justify such a rule for the general case
+			
+		//we really dont want that an operand is amongst the other numbers
+		$score-=count($this->possibleAnomalies)*20; 
 		// This way, when selecting a formula scores are used only if the number of anomalies are the same 
 		foreach($this->numberReliabilityScore as $numScore){
 			$score+=$numScore; 
@@ -348,6 +353,7 @@ class	SimplFormul
 
 			}
 		}
+		$this->operands=array_diff($this->nbs,[$this->result]);
 	}
 
 	// Outputs:
