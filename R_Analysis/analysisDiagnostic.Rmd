@@ -1,0 +1,80 @@
+Analysis of diagnostic programm performances
+========================================================
+
+# Performance Analysis
+
+## Summary
+```{r}
+datas=read.csv2("../test/temp.csv",sep=";",colClasses=c("NULL","NULL","factor","NULL","NULL","factor","factor","numeric","factor","factor","numeric","numeric","numeric","numeric"))
+#protocol  Success	formula_human	formula_cpu	Ininterp_human	Ininterp_cpu	AnomaliesCount	problem	problemSerie
+head(datas)
+summary(datas)
+```
+
+## some tables
+```{r}
+table(datas$Success)
+datas2<-datas
+datas2$AnomaliesCount[datas2$AnomaliesCount>=4] <- ">3"
+datas2$AnomaliesCount<-as.factor(datas2$AnomaliesCount)
+datas2$AnomaliesCount=factor(datas2$AnomaliesCount,levels(datas2$AnomaliesCount)[c(2:5,1)])
+table(datas2$AnomaliesCount,datas2$Ininterp_cpu)
+t2=table(datas2$Ininterp_cpu,datas2$Success,dnn=c("ininterpretable","succès"))
+t3=table(datas2$AnomaliesCount,datas2$Success,dnn=c("Valeurs du compteur","succès"))
+t3
+prop.table(t3,1)
+prop.table(t3)
+prop.table(t2,1)
+prop.table(t2,2)
+prop.table(t2)
+nrow(datas)
+table(datas2$Success,datas2$problemSerie)
+datas3<-datas
+t=table(datas$Success)
+t/margin.table(t)
+t3=table(datas$Ininterp_cpu)
+t3/margin.table(t3)
+```
+### Relation between different categories of anomalies and success
+```{r}
+t3_doubts=table(datas2$Success,datas2$DoubtSelect,dnn=c("Valeurs du compteur","succès"))
+t3_doubts
+```
+
+### Relation between different categories of anomalies and success
+```{r}
+t3_hub=table(datas2$Success,datas2$DoubtNumber,dnn=c("Valeurs du compteur","succès"))
+t3_hub
+```
+
+# Experimentation
+Humans had to pick which diagnosis sounds the better along with their confidence level.
+We study the dataset.
+
+## Summary
+```{r}
+datasComp=read.csv2("../test/comparisonHumanComp.csv",sep=";",colClasses=c("NULL","factor","factor","factor","factor","factor","factor","factor","NULL","factor","NULL","NULL","factor","factor","numeric","factor","factor","numeric","numeric","numeric","numeric"))
+#protocol  Success  formula_human	formula_cpu	Ininterp_human	Ininterp_cpu	AnomaliesCount	problem	problemSerie
+head(datasComp)
+datasComp=head(datasComp,100) # only a part has been used in the study
+summary(datasComp)
+```
+
+```{r}
+datasComp$votesForHuman=as.numeric(datasComp$selectionE==datasComp$humanSelection)+as.numeric(datasComp$selectionV==datasComp$humanSelection)+as.numeric(datasComp$selectionB==datasComp$humanSelection)
+table(datasComp$votesForHuman)
+```
+
+## repartition of votes
+
+```{r}
+table(as.factor(datasComp$votesForHuman))
+```
+
+## correspondance with anomalies
+```{r}
+datasComp$AnomaliesCount[datasComp$AnomaliesCount>=2] <- ">1"
+datasComp$AnomaliesCount<-as.factor(datasComp$AnomaliesCount)
+datasComp$AnomaliesCount=factor(datasComp$AnomaliesCount,levels(datasComp$AnomaliesCount)[c(2:4,1)])
+table(datasComp$AnomaliesCount,datasComp$votesForHuman)
+```
