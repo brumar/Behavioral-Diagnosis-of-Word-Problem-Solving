@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.55255.svg)](http://dx.doi.org/10.5281/zenodo.55255)
+
 # Introduction  
 This repository presents a PHP library destined to realize behavioral diagnosis on open answer in the field of additive word problem solving. There is a fair amount of scientific litterature on arithmetic word problem solving. If you are new to this field and want to dig it, I strongly recommend the book of Stephen K.Reed (Word Problems: Research and Curriculum Reform) which is a good read whatever the cognitive psychology background you have. It also presents few learning environnement related to word problem solving. Behavioral diagnosis is, in the context of a learning environement, the process by which actions of the student are untangled and formalised in the system in a way that it can be used for further investivations (like epistemic diagnosis). Student modeling is also a huge research domain. To know more about what is meant by diagnosis, its various forms and importance in the context of learning environnement. I recommend the review of Ragnelmam *"Student diagnosis in practice; bridging a gap"*. 
 
